@@ -1,7 +1,7 @@
 from botocore.client import BaseClient
 
 from app.config import app_config
-from app.models import KnowledgeBaseResource, KnowledgeBase
+from app.models import KnowledgeBaseResource, KnowledgeBase, StatusEnum
 from app.schemas.knowledge_base_resources import KnowledgeBaseResourceCreate, KnowledgeBaseResourceUpdate, \
     KnowledgeBaseResourcePartialUpdate
 from beanie import PydanticObjectId
@@ -34,10 +34,40 @@ async def get_resource(resource_id: PydanticObjectId) -> KnowledgeBaseResource:
         raise ResourceNotFound("Resource not found")
     return resource
 
+def validate_status_transition(current_status: str, new_status: str):
+    """
+    Enforce allowed status transitions:
+    no_file -> uploading -> uploaded -> ingesting -> done
+    'error' can be set from any status at any time
+    """
+    if new_status == StatusEnum.ERROR:
+        return
+    status_flow = [
+        StatusEnum.NO_FILE,
+        StatusEnum.UPLOADING,
+        StatusEnum.UPLOADED,
+        StatusEnum.INGESTING,
+        StatusEnum.DONE,
+    ]
+    try:
+        current_index = status_flow.index(current_status)
+        next_allowed = status_flow[current_index + 1] if current_index + 1 < len(status_flow) else None
+    except ValueError:
+        next_allowed = None
+    if new_status != next_allowed:
+        raise ResourceConflict(f"Invalid status transition: {current_status} -> {new_status}")
+
 async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseResourceUpdate | KnowledgeBaseResourcePartialUpdate, partial = False) -> KnowledgeBaseResource:
     resource = await KnowledgeBaseResource.get(resource_id)
     if not resource:
         raise ResourceNotFound("Resource not found")
+
+    # same status cannot be updated
+    if resource.status == data.status:
+        raise ResourceConflict("Can't update resource with same status")
+
+    validate_status_transition(resource.status, data.status)
+
     update_data = data.model_dump(exclude_unset=partial)
     for key, value in update_data.items():
         setattr(resource, key, value)

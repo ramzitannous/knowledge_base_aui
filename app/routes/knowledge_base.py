@@ -28,17 +28,11 @@ async def get_kb_route(kb_id: PydanticObjectId):
 
 @router.put("/{kb_id}", response_model=KnowledgeBase, status_code=status.HTTP_200_OK)
 async def update_kb_route(kb_id: PydanticObjectId, data: KnowledgeBaseUpdate):
-    """
-    ingesting file will start once file status is send as `uploaded`
-    """
     kb = await update_knowledge_base(kb_id, data)
     return kb
 
 @router.patch("/{kb_id}", response_model=KnowledgeBase, status_code=status.HTTP_200_OK)
 async def patch_kb_route(kb_id: PydanticObjectId, data: KnowledgeBasePartialUpdate):
-    """
-    ingesting file will start once file status is send as `uploaded`
-    """
     kb = await update_knowledge_base(kb_id, data, partial=True)
     return kb
 

@@ -25,6 +25,10 @@ class StatusEnum(str, Enum):
     ERROR = "error"
     NO_FILE = "no_file"
 
+    def __str__(self):
+        return self.value
+
+
 
 class KnowledgeBaseResource(Document):
     """Resource file belonging to a Knowledge Base"""

@@ -21,8 +21,9 @@ router = APIRouter()
 @router.post("/", response_model=KnowledgeBaseResourceCreateResponse, status_code=status.HTTP_201_CREATED)
 async def create_resource(data: KnowledgeBaseResourceCreate, s3_client: BaseClient = Depends(s3_dep)):
     """
-        create KB resource and return s3_presigned_url to be used to upload the actual file
-        This separation was used to offload the actual file upload from the api
+        - Create KB resource and return s3_presigned_url to be used to upload the actual file
+        - This separation was used to offload the actual file upload from the api
+        - Only .pdf file is supported
         1. create s3_presigned_url, if this failed, no resource will be created
         2. create actual resource when presigned_url is ready
     """
@@ -45,11 +46,17 @@ async def get_resource(resource_id: PydanticObjectId):
 
 @router.put("/{resource_id}", response_model=KnowledgeBaseResource)
 async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseResourceUpdate):
+    """
+    - Ingesting file will start once file status is send as `uploaded`
+    """
     return await service.update_resource(resource_id, data)
 
 
 @router.patch("/{resource_id}", response_model=KnowledgeBaseResource)
 async def partial_update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseResourcePartialUpdate):
+    """
+       - Ingesting file will start once file status is send as `uploaded`
+    """
     return await service.update_resource(resource_id, data, True)
 
 
