@@ -14,6 +14,13 @@ class AppConfig(BaseSettings):
     POSTGRES_PASSWORD: str = "admin"
     POSTGRES_DB: str = "knowledge_base"
 
+    # AWS
+    AWS_ACCESS_KEY_ID: str = "root"
+    AWS_SECRET_ACCESS_KEY: str = "root"
+    AWS_S3_ENDPOINT_URL: str = ""
+    AWS_DEFAULT_REGION: str = "us-east-1"
+    AWS_BUCKET_NAME: str = "knowledge-base"
+
     # general
     DEBUG: bool = True
 

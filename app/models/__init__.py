@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 
 from beanie import Document, Indexed
-from pydantic import Field
+from pydantic import Field, validator, field_validator
 
 
 class KnowledgeBase(Document):
@@ -19,9 +19,11 @@ class KnowledgeBase(Document):
 
 class StatusEnum(str, Enum):
     UPLOADING = "uploading"
+    UPLOADED = "uploaded"
     INGESTING = "ingesting"
     DONE = "done"
     ERROR = "error"
+    NO_FILE = "no_file"
 
 
 class KnowledgeBaseResource(Document):
@@ -29,10 +31,9 @@ class KnowledgeBaseResource(Document):
     knowledge_base_id: str = Field(..., description="Reference to KnowledgeBase _id")
     filename: str = Field(..., description="Name of the file")
     s3_key: Optional[str] = Field(None, description="S3 key of the file")
-    uploaded_at: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
     size: Optional[int] = Field(None, description="Size of the file in bytes")
     version: Optional[int] = Field(1, description="Version of the file")
-    status: StatusEnum = Field(StatusEnum.UPLOADING, description="Resource status: active, inactive, or archived")
+    status: StatusEnum = Field(StatusEnum.NO_FILE, description="Resource status")
     error: Optional[str] = Field(None, description="Error message")
 
     class Settings:

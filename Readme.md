@@ -176,6 +176,34 @@ The API uses unified exception handling for resource errors:
 
 These are handled globally in `main.py` for consistent error responses across all endpoints.
 
+## Async S3/MinIO Integration
+
+This project supports AWS S3-compatible storage (including [MinIO](https://min.io/)) using `aioboto3` for async access.
+
+### Setup
+1. Install dependencies (already included in `pyproject.toml`):
+   ```sh
+   uv pip install -r pyproject.toml
+   ```
+2. Set the following environment variables as needed:
+   - `AWS_ACCESS_KEY_ID` (default: `minioadmin`)
+   - `AWS_SECRET_ACCESS_KEY` (default: `minioadmin`)
+   - `AWS_S3_ENDPOINT_URL` (default: `http://localhost:9000` for MinIO)
+   - `AWS_REGION` (default: `us-east-1`)
+
+### Usage Example
+In your async Python code, use the provided client factory:
+```python
+from app.services.clients import get_async_s3_client
+
+async def upload_example():
+    async with get_async_s3_client() as s3:
+        await s3.put_object(Bucket="mybucket", Key="file.txt", Body=b"data")
+```
+
+- The client is fully compatible with both AWS S3 and MinIO.
+- See `app/services/clients.py` for implementation details.
+
 ## Configuration with Pydantic Settings
 
 Application settings are managed using Pydantic's `BaseSettings` in `app/config.py`. This allows configuration via environment variables or a `.env` file, following FastAPI best practices.

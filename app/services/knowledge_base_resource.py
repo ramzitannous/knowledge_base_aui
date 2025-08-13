@@ -1,15 +1,25 @@
+from botocore.client import BaseClient
+
+from app.config import app_config
 from app.models import KnowledgeBaseResource, KnowledgeBase
 from app.schemas.knowledge_base_resources import KnowledgeBaseResourceCreate, KnowledgeBaseResourceUpdate, \
     KnowledgeBaseResourcePartialUpdate
 from beanie import PydanticObjectId
 from app.exceptions import ResourceConflict, ResourceNotFound
+from app.services.s3 import generate_s3_key, generate_presigned_url
 
-async def create_resource(data: KnowledgeBaseResourceCreate) -> KnowledgeBaseResource:
+
+async def generate_s3_presigned_url_for_resource(filename: str, version: int, s3_client: BaseClient) -> tuple[str, str]:
+    s3_key = generate_s3_key(filename, version)
+    s3_presigned_url = await generate_presigned_url(s3_client, app_config.AWS_BUCKET_NAME, s3_key)
+    return s3_presigned_url, s3_key
+
+async def create_resource(data: KnowledgeBaseResourceCreate, s3_key: str) -> KnowledgeBaseResource:
     # Ensure the knowledge base exists
     kb = await KnowledgeBase.get(data.knowledge_base_id)
     if not kb:
         raise ResourceNotFound("Knowledge base not found")
-    resource = KnowledgeBaseResource(**data.model_dump())
+    resource = KnowledgeBaseResource(**data.model_dump(), s3_key=s3_key)
     try:
         await resource.insert()
     except Exception as e:

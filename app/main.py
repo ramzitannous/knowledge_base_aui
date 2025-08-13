@@ -1,12 +1,14 @@
 # Entry point for FastAPI app
-from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from app.exceptions import ResourceConflict, ResourceNotFound
-from fastapi import FastAPI
-from app.routes import router as knowledge_base_router
-from app.db import init_db
 import logging
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+from app.db import init_db
+from app.exceptions import ResourceConflict, ResourceNotFound
+from app.routes import knowledge_base_router, knowledge_base_resources_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,3 +37,4 @@ async def general_exception_handler(request: Request, exc: Exception):
     )
 
 app.include_router(knowledge_base_router, prefix="/knowledge-base", tags=["Knowledge Base"])
+app.include_router(knowledge_base_resources_router, prefix="/knowledge-base-resources", tags=["Knowledge Base Resources"])
