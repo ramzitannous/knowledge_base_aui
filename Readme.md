@@ -12,15 +12,16 @@
 ### KnowledgeBaseResource Model (knowledge_base_files)
 - unique togather (knowledge_base_id, filename, version)
 
-| Field             | Type                | Description                        |
-|-------------------|---------------------|------------------------------------|
-| knowledge_base_id | str                 | Reference to KnowledgeBase _id     |
-| filename          | str                 | Name of the file                   |
-| s3_key            | Optional[str]       | S3 key of the file                 |
-| uploaded_at       | datetime.datetime   | Upload timestamp (UTC)             |
-| size              | Optional[int]       | Size of the file in bytes          |
-| version           | Optional[int]       | Version of the file                |
-
+| Field             | Type               | Description                                          |
+|-------------------|--------------------|------------------------------------------------------|
+| knowledge_base_id | str                | Reference to KnowledgeBase _id                       |
+| filename          | str                | Name of the file                                     |
+| s3_key            | Optional[str]      | S3 key of the file                                   |
+| uploaded_at       | datetime.datetime  | Upload timestamp (UTC)                               |
+| size              | Optional[int]      | Size of the file in bytes                            |
+| version           | Optional[int]      | Version of the file                                  |
+ | status            | StatusEnum        | Resource status: uploading, ingesting, done, error   |
+| error             | Optional[str]      | Error message                                        |
 - This application is a Python-based tool designed to manage and interact with a knowledge base. The project uses a modular structure with a main entry point in `main.py` and dependency management via `pyproject.toml` (managed with [uv](https://github.com/astral-sh/uv)). The app is intended for local use and can be extended for various knowledge management or automation tasks.
 
 ## Key Features
@@ -48,7 +49,7 @@
 
 4. Run the application:
    ```sh
-   uv run python main.py
+   uv run uvicorn app.main:app --reload 
    ```
 
 ## Environment Variables
@@ -206,7 +207,7 @@ class AppConfig(BaseSettings):
 - MongoDB ([MongoDB](https://www.mongodb.com/)) with vector search support
 - PostgreSQL ([pgvector](https://github.com/pgvector/pgvector)) for vector DB support
 - Beanie ([Beanie](https://github.com/roman-right/beanie)) as an asynchronous ODM for MongoDB
-
+- pydantic-settings ([pydantic-settings](https://github.com/samuelcolvin/pydantic-settings)) for configuration management
 ## Project Structure
 
 - `main.py` — Main entry point and application logic.
@@ -215,3 +216,18 @@ class AppConfig(BaseSettings):
 - `.docker-compose-dev.yaml` — Docker Compose config for local dev databases.
 - `.env`, `.env` — Environment variables for local development (used by Docker Compose).
 - `.env.example` — Example environment variable file (template).
+
+### KnowledgeBaseResource Fields
+
+- **knowledge_base_id**: Reference to KnowledgeBase `_id`
+- **filename**: Name of the file
+- **s3_key**: S3 key of the file (optional)
+- **content_type**: Content type (MIME, optional)
+- **size**: Size of the file in bytes (optional)
+- **version**: Version of the file (default: 1)
+- **status**: Resource status (enum)
+  - `active`: The resource is available and in use
+  - `inactive`: The resource is temporarily disabled
+  - `archived`: The resource is archived and not in active use
+
+> The `status` field defaults to `active` if not specified.

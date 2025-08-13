@@ -4,3 +4,5 @@ dist
 # Ignore env files except the templates
 .env
 !.env.example
+.idea/*
+

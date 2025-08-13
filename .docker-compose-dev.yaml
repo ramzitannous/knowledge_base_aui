@@ -10,8 +10,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - mongodb_data:/data/db
-    command:
-      - mongod --auth
+
 
 
   postgres:
