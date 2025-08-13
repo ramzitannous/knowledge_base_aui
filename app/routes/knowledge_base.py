@@ -1,7 +1,7 @@
 from typing import List
 
 from beanie import PydanticObjectId
-from fastapi import APIRouter, status, Response
+from fastapi import APIRouter, status, Response, Query
 
 from app.models import KnowledgeBase
 from app.schemas import KnowledgeBaseCreate, KnowledgeBaseUpdate
@@ -18,8 +18,8 @@ async def create_kb_route(data: KnowledgeBaseCreate):
     return kb
 
 @router.get("/", response_model=List[KnowledgeBase], status_code=status.HTTP_200_OK)
-async def list_kb_route():
-    return await list_knowledge_bases()
+async def list_kb_route(offset: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=100)):
+    return await list_knowledge_bases(offset=offset, limit=limit)
 
 @router.get("/{kb_id}", response_model=KnowledgeBase, status_code=status.HTTP_200_OK)
 async def get_kb_route(kb_id: PydanticObjectId):

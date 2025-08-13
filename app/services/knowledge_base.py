@@ -13,8 +13,8 @@ async def create_knowledge_base(data: KnowledgeBaseCreate) -> KnowledgeBase:
         raise
     return kb
 
-async def list_knowledge_bases() -> list[KnowledgeBase]:
-    return await KnowledgeBase.find_all().to_list()
+async def list_knowledge_bases(offset: int = 0, limit: int = 10) -> list[KnowledgeBase]:
+    return await KnowledgeBase.find_all().skip(offset).limit(limit).to_list()
 
 async def get_knowledge_base(kb_id: PydanticObjectId) -> KnowledgeBase:
     kb = await KnowledgeBase.get(kb_id)
