@@ -225,6 +225,33 @@ class AppConfig(BaseSettings):
 - Override any setting with environment variables or a `.env` file.
 - Use `AppConfig()` to access settings throughout your codebase.
 
+## Running with uvloop
+
+This project uses [uvloop](https://github.com/MagicStack/uvloop) for improved async performance in Python. `uvloop` is a drop-in replacement for the standard asyncio event loop, providing significant speedups for I/O-bound applications such as FastAPI.
+
+### How uvloop is used
+- The Dockerfile runs the app with the following command:
+  ```sh
+  uvicorn app.main:app --host 0.0.0.0 --port 8000 --loop uvloop --app-dir app
+  ```
+- This tells `uvicorn` to use `uvloop` as the event loop implementation.
+
+### Benefits
+- Faster request handling and lower latency for async APIs.
+- No code changes needed—just the `--loop uvloop` flag.
+
+### Requirements
+- `uvloop` is installed automatically as part of the dependencies (see `pyproject.toml`).
+
+### Local Docker development
+To build and run locally:
+```sh
+docker build -t myfastapi .
+docker run --rm -p 8000:8000 myfastapi
+```
+
+Your FastAPI app will now run with `uvloop` for maximum async performance.
+
 ## Tech Stack
 - uv ([uv](https://github.com/astral-sh/uv))
 - FastAPI ([FastAPI](https://fastapi.tiangolo.com/))

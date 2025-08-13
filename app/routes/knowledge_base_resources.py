@@ -25,7 +25,7 @@ async def create_resource(data: KnowledgeBaseResourceCreate, s3_client: BaseClie
         - This separation was used to offload the actual file upload from the api
         - Only .pdf file is supported
         1. create s3_presigned_url, if this failed, no resource will be created
-        2. create actual resource when presigned_url is ready
+        2. create actual resource when s3_presigned_url is ready
     """
     s3_presigned_url, s3_key = await service.generate_s3_presigned_url_for_resource(data.filename, data.version, s3_client)
     created_resource = await service.create_resource(data, s3_key)
