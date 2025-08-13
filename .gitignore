@@ -2,7 +2,7 @@
 build
 dist
 # Ignore env files except the templates
-.env
+.env*
 !.env.example
 .idea/*
 
