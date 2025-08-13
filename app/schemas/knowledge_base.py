@@ -6,5 +6,9 @@ class KnowledgeBaseCreate(BaseModel):
     description: str
 
 class KnowledgeBaseUpdate(BaseModel):
+    name: str
+    description: str
+
+class KnowledgeBasePartialUpdate(BaseModel):
     name: str = None
     description: str = None

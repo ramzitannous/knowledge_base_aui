@@ -4,7 +4,7 @@ from beanie import PydanticObjectId
 from fastapi import APIRouter, status, Response, Query
 
 from app.models import KnowledgeBase
-from app.schemas import KnowledgeBaseCreate, KnowledgeBaseUpdate
+from app.schemas import KnowledgeBaseCreate, KnowledgeBaseUpdate, KnowledgeBasePartialUpdate
 from app.services.knowledge_base import (
     create_knowledge_base, list_knowledge_bases, get_knowledge_base,
     update_knowledge_base, delete_knowledge_base
@@ -29,6 +29,11 @@ async def get_kb_route(kb_id: PydanticObjectId):
 @router.put("/{kb_id}", response_model=KnowledgeBase, status_code=status.HTTP_200_OK)
 async def update_kb_route(kb_id: PydanticObjectId, data: KnowledgeBaseUpdate):
     kb = await update_knowledge_base(kb_id, data)
+    return kb
+
+@router.patch("/{kb_id}", response_model=KnowledgeBase, status_code=status.HTTP_200_OK)
+async def patch_kb_route(kb_id: PydanticObjectId, data: KnowledgeBasePartialUpdate):
+    kb = await update_knowledge_base(kb_id, data, partial=True)
     return kb
 
 @router.delete("/{kb_id}", status_code=status.HTTP_204_NO_CONTENT)

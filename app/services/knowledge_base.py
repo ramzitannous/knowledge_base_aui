@@ -1,10 +1,13 @@
+import datetime
+
 from app.models import KnowledgeBase
-from app.schemas import KnowledgeBaseCreate, KnowledgeBaseUpdate
+from app.schemas import KnowledgeBaseCreate, KnowledgeBaseUpdate, KnowledgeBasePartialUpdate
 from beanie import PydanticObjectId
 from app.exceptions import ResourceConflict, ResourceNotFound
 
 async def create_knowledge_base(data: KnowledgeBaseCreate) -> KnowledgeBase:
-    kb = KnowledgeBase(**data.model_dump())
+    updated_at = datetime.datetime.now(datetime.timezone.utc)
+    kb = KnowledgeBase(**data.model_dump(), updated_at=updated_at)
     try:
         await kb.insert()
     except Exception as e:
@@ -22,11 +25,13 @@ async def get_knowledge_base(kb_id: PydanticObjectId) -> KnowledgeBase:
         raise ResourceNotFound("KnowledgeBase not found")
     return kb
 
-async def update_knowledge_base(kb_id: PydanticObjectId, data: KnowledgeBaseUpdate) -> KnowledgeBase:
+async def update_knowledge_base(kb_id: PydanticObjectId, data: KnowledgeBaseUpdate | KnowledgeBasePartialUpdate, partial: bool = False) -> KnowledgeBase:
     kb = await KnowledgeBase.get(kb_id)
     if not kb:
         raise ResourceNotFound("KnowledgeBase not found")
-    update_data = data.model_dump(exclude_unset=True)
+    update_data = data.model_dump(exclude_unset=partial)
+    updated_at = datetime.datetime.now(datetime.timezone.utc)
+    update_data["updated_at"] = updated_at
     for key, value in update_data.items():
         setattr(kb, key, value)
     try:
