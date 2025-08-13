@@ -158,6 +158,36 @@ This structure is scalable and follows FastAPI best practices.
 
 > Status codes now follow RESTful conventions for resource creation, retrieval, update, and deletion.
 
+## API Key Authentication
+
+All API endpoints are protected by API key authentication. Every request must include the correct API key in the `X-API-Key` HTTP header.
+
+### How it works
+- The API key is loaded from the `API_KEY` environment variable (see `.env`, `.env.docker`, `.env.example`).
+- If the provided key is missing or invalid, the API returns a 401 Unauthorized error.
+- This is enforced globally for all endpoints.
+
+### Usage Example
+
+Include the header in your requests:
+
+```http
+X-API-Key: your_secret_key_here
+```
+
+Or with curl:
+```sh
+curl -H "X-API-Key: your_secret_key_here" http://localhost:8000/your-endpoint
+```
+
+### Configuration
+Add your API key to your environment file:
+```
+API_KEY=your_secret_key_here
+```
+
+> **Note:** If `API_KEY` is not set, the server will fail to start or will reject all requests.
+
 ## Service Layer Structure
 
 All business logic for knowledge base and resource operations is implemented in a dedicated service layer:

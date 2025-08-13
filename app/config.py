@@ -13,6 +13,8 @@ class AppConfig(BaseSettings):
     POSTGRES_USER: str = "admin"
     POSTGRES_PASSWORD: str = "admin"
     POSTGRES_DB: str = "knowledge_base"
+    POSTGRES_HOST: str = "localhost"
+    POSTGRES_PORT: int = 5432
 
     # AWS
     AWS_ACCESS_KEY_ID: str = "root"
@@ -23,6 +25,8 @@ class AppConfig(BaseSettings):
 
     # general
     DEBUG: bool = True
+    APP_ENV: str = "local"
+    API_KEY: str = "test"
 
     @property
     def MONGODB_URI(self):

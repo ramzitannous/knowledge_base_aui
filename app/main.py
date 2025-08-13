@@ -5,16 +5,18 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from fastapi import Depends
 
 from app.db import init_db
 from app.exceptions import ResourceConflict, ResourceNotFound
 from app.routes import knowledge_base_router, knowledge_base_resources_router
+from app.deps import verify_api_key
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
     yield
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, dependencies=[Depends(verify_api_key)])
 
 # Register exception handlers
 @app.exception_handler(ResourceNotFound)
