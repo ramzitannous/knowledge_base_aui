@@ -1,15 +1,20 @@
 from pydantic import BaseModel
 
+from app.models import StatusEnum
+
 
 class KnowledgeBaseResourceCreate(BaseModel):
     knowledge_base_id: str
     filename: str
-    s3_key: str = None
-    size: int = None
     version: int = 1
 
 class KnowledgeBaseResourceUpdate(BaseModel):
+    filename: str
+    version: int
+    status: StatusEnum
+
+
+class KnowledgeBaseResourcePartialUpdate(BaseModel):
     filename: str = None
-    s3_key: str = None
-    size: int = None
     version: int = None
+    status: StatusEnum = None
