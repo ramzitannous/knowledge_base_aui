@@ -39,6 +39,9 @@ class KnowledgeBaseResource(Document):
     version: Optional[int] = Field(1, description="Version of the file")
     status: StatusEnum = Field(StatusEnum.NO_FILE, description="Resource status")
     error: Optional[str] = Field(None, description="Error message")
+    job_id: Optional[str] = Field(None, description="Job ID for async processing")
+    created_at: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
+    updated_at: Optional[datetime.datetime] = None
 
     class Settings:
         # mongodb collection name

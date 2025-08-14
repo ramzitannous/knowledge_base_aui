@@ -1,3 +1,5 @@
+import datetime
+
 from botocore.client import BaseClient
 
 from app.config import app_config
@@ -37,7 +39,8 @@ async def get_resource(resource_id: PydanticObjectId) -> KnowledgeBaseResource:
 def validate_status_transition(current_status: str, new_status: str):
     """
     Enforce allowed status transitions:
-    no_file -> uploading -> uploaded -> ingesting -> done
+    no_file -> uploading -> uploaded
+    uploaded -> ingesting -> done internally changed
     'error' can be set from any status at any time
     """
     if new_status == StatusEnum.ERROR:
@@ -46,8 +49,6 @@ def validate_status_transition(current_status: str, new_status: str):
         StatusEnum.NO_FILE,
         StatusEnum.UPLOADING,
         StatusEnum.UPLOADED,
-        StatusEnum.INGESTING,
-        StatusEnum.DONE,
     ]
     try:
         current_index = status_flow.index(current_status)
@@ -69,6 +70,8 @@ async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseReso
     validate_status_transition(resource.status, data.status)
 
     update_data = data.model_dump(exclude_unset=partial)
+    updated_at = datetime.datetime.now(datetime.timezone.utc)
+    update_data["updated_at"] = updated_at
     for key, value in update_data.items():
         setattr(resource, key, value)
     try:

@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 
 import aioboto3
+from redis import Redis
+
 from app.config import app_config
 
 
@@ -15,3 +17,9 @@ async def get_async_s3_client():
         region_name=app_config.AWS_DEFAULT_REGION,
     ) as client:
         yield client
+
+redis_client = Redis(
+    host=app_config.REDIS_HOST,
+    port=app_config.REDIS_PORT,
+    db=app_config.REDIS_DB
+)

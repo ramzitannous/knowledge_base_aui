@@ -35,6 +35,7 @@ class AppConfig(BaseSettings):
     #Redis
     REDIS_HOST: str
     REDIS_PORT: int
+    REDIS_DB: int = 0
 
     # general
     APP_ENV: AppEnv

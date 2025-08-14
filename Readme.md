@@ -41,9 +41,10 @@
 
 2. Copy `.env.example` to `.env` and `.env` as needed, and edit the values for your environment.
 
-3. Start the database services (MongoDB and Postgres with pgvector):
+3. Start the stack:
    ```sh
-   docker-compose -f .docker-compose-dev.yaml up -d
+   docker-compose --env-file .env.docker -f .docker-compose-dev.yaml -p knowledge_base_aui up -d
+
    ```
    _Environment variables will be loaded from `.env` or `.env` automatically._
 
@@ -297,6 +298,9 @@ Your FastAPI app will now run with `uvloop` for maximum async performance.
 - pydantic ([pydantic](https://github.com/samuelcolvin/pydantic)) for data validation and serialization
 - uvloop ([uvloop](https://github.com/MagicStack/uvloop)) for improved async performance
 - aioboto3 ([aioboto3](https://github.com/astral-sh/aioboto3)) for async S3/MinIO integration
+- rq ([rq](https://github.com/rq/rq)) for queueing and background tasks
+- rq-dashboard ([rq-dashboard](https://github.com/rq/rq-dashboard)) for monitoring queues
+- 
 ## Project Structure
 
 - `main.py` — Main entry point and application logic.
