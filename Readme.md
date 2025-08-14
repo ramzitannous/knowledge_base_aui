@@ -293,6 +293,10 @@ Your FastAPI app will now run with `uvloop` for maximum async performance.
 - PostgreSQL ([pgvector](https://github.com/pgvector/pgvector)) for vector DB support
 - Beanie ([Beanie](https://github.com/roman-right/beanie)) as an asynchronous ODM for MongoDB
 - pydantic-settings ([pydantic-settings](https://github.com/samuelcolvin/pydantic-settings)) for configuration management
+- slowapi ([slowapi](https://github.com/davidgama/slowapi)) for throttling and rate limiting
+- pydantic ([pydantic](https://github.com/samuelcolvin/pydantic)) for data validation and serialization
+- uvloop ([uvloop](https://github.com/MagicStack/uvloop)) for improved async performance
+- aioboto3 ([aioboto3](https://github.com/astral-sh/aioboto3)) for async S3/MinIO integration
 ## Project Structure
 
 - `main.py` — Main entry point and application logic.
