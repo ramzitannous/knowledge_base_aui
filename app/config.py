@@ -10,6 +10,14 @@ class AppEnv(str, Enum):
     def __str__(self):
         return self.value
 
+class PipelineConfig:
+    EMBEDDING_MODEL   = "sentence-transformers/all-MiniLM-L6-v2"
+    SPLIT_SIZE = 400
+    SPLIT_OVERLAP = 40
+    SEPARATORS = ["\n\n", "\n", " "]
+    SPLIT_UNIT = "token"
+    EMBEDDING_DIMENSION = 384
+
 class AppConfig(BaseSettings):
     # MongoDB
     MONGO_INITDB_ROOT_USERNAME: str
@@ -41,6 +49,9 @@ class AppConfig(BaseSettings):
     APP_ENV: AppEnv
     API_KEY: str
 
+    # pipeline
+    PIPELINE_CONFIG: PipelineConfig = PipelineConfig()
+
     class Config:
         env_file = ".env"
 
@@ -60,4 +71,12 @@ class AppConfig(BaseSettings):
     def REDIS_URI(self):
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
 
+    @property
+    def device(self):
+        if torch.backends.mps.is_available():
+            device = torch.device("mps")
+            print("Using Apple Silicon GPU via MPS")
+        else:
+            device = torch.device("cpu")
+            print("Using CPU")
 app_config = AppConfig()

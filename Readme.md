@@ -235,6 +235,29 @@ async def upload_example():
 - The client is fully compatible with both AWS S3 and MinIO.
 - See `app/services/clients.py` for implementation details.
 
+## Document Splitting Strategy
+
+We use the `RecursiveDocumentSplitter` component to chunk documents before embedding and storage. This splitter recursively divides documents using a prioritized list of separators (paragraph, newline, space), producing chunks of approximately 500 characters with 50 characters of overlap by default (configurable in `PIPELINE_CONFIG`).
+
+This approach preserves semantic context across chunk boundaries and improves retrieval quality for long documents. The chunking parameters can be tuned for your use case, balancing context size with search granularity.
+
+Example configuration:
+```python
+pdf_splitter = RecursiveDocumentSplitter(
+    chunk_size=app_config.PIPELINE_CONFIG.CHUNK_SIZE,
+    chunk_overlap=app_config.PIPELINE_CONFIG.CHUNK_OVERLAP,
+    separators=app_config.PIPELINE_CONFIG.SEPARATORS
+)
+```
+
+## Embedding Model Choice
+
+We use `sentence-transformers/all-MiniLM-L6-v2` as the default embedding model for semantic search and retrieval. This model offers an excellent balance of speed, accuracy, and model size, making it well-suited for production environments. It is widely adopted in the NLP community, lightweight, and performs well on a variety of English-language datasets. This makes it a strong default for general-purpose document embedding and semantic search tasks.
+
+## Why Haystack Fastembed?
+
+We use Haystack's Fastembed integration for document embedding because it provides high-performance, CPU-optimized text embedding without requiring a GPU. Fastembed leverages efficient models and quantization techniques to deliver fast inference speeds, making it ideal for production environments where GPU resources may be limited or unavailable. This allows for scalable, cost-effective semantic search and retrieval, especially when running on commodity hardware or in cloud deployments with CPU-only nodes [(https://haystack.deepset.ai/integrations/fastembed)].
+
 ## Configuration with Pydantic Settings
 
 Application settings are managed using Pydantic's `BaseSettings` in `app/config.py`. This allows configuration via environment variables or a `.env` file, following FastAPI best practices.
@@ -304,7 +327,9 @@ Your FastAPI app will now run with `uvloop` for maximum async performance.
 - pydantic ([pydantic](https://github.com/samuelcolvin/pydantic)) for data validation and serialization
 - pypdf ([pypdf](https://github.com/py-pdf/pypdf)) for PDF processing
 - nest_asyncio ([nest_asyncio](https://github.com/andyshinn/nest_asyncio)) for nested event loops
-- 
+- fastembed ([fastembed](https://github.com/qdrant/fastembed/)) for text embedding using CPU with fast performance
+- fastembed-haystack ([fastembed-haystack](https://github.com/qdrant/fastembed-haystack/)) for text embedding using CPU with fast performance
+- tiktoken ([tiktoken](https://github.com/openai/tiktoken)) for tokenization
 ## Project Structure
 
 - `main.py` — Main entry point and application logic.
