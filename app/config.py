@@ -32,6 +32,10 @@ class AppConfig(BaseSettings):
     AWS_DEFAULT_REGION: str
     AWS_BUCKET_NAME: str
 
+    #Redis
+    REDIS_HOST: str
+    REDIS_PORT: int
+
     # general
     APP_ENV: AppEnv
     API_KEY: str
@@ -46,5 +50,13 @@ class AppConfig(BaseSettings):
     @property
     def MONGODB_URI(self):
         return f"mongodb://{self.MONGO_INITDB_ROOT_USERNAME}:{self.MONGO_INITDB_ROOT_PASSWORD}@{self.MONGODB_HOST}:{self.MONGODB_PORT}/{self.MONGODB_DB}?authSource=admin"
+
+    @property
+    def POSTGRES_URI(self):
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
+
+    @property
+    def REDIS_URI(self):
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
 
 app_config = AppConfig()
