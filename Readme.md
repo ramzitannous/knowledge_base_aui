@@ -300,6 +300,10 @@ Your FastAPI app will now run with `uvloop` for maximum async performance.
 - aioboto3 ([aioboto3](https://github.com/astral-sh/aioboto3)) for async S3/MinIO integration
 - rq ([rq](https://github.com/rq/rq)) for queueing and background tasks
 - rq-dashboard ([rq-dashboard](https://github.com/rq/rq-dashboard)) for monitoring queues
+- haystack ([haystack](https://github.com/deepset-ai/haystack)) for rag pipeline & semantic search
+- pydantic ([pydantic](https://github.com/samuelcolvin/pydantic)) for data validation and serialization
+- pypdf ([pypdf](https://github.com/py-pdf/pypdf)) for PDF processing
+- nest_asyncio ([nest_asyncio](https://github.com/andyshinn/nest_asyncio)) for nested event loops
 - 
 ## Project Structure
 

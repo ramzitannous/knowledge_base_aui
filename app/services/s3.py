@@ -2,6 +2,7 @@ import uuid
 
 import aiofiles
 from botocore.client import BaseClient
+from botocore.exceptions import ClientError
 
 
 async def generate_presigned_url(s3_client: BaseClient, bucket: str, key: str, expires_in=3600):
@@ -22,17 +23,33 @@ async def delete_s3_file(s3_client: BaseClient, bucket: str, key: str):
     await s3_client.delete_object(Bucket=bucket, Key=key)
 
 
-async def download_s3_file(s3_client: BaseClient, bucket: str, key: str, download_path: str):
+async def download_s3_file_as_bytes(s3_client: BaseClient, bucket: str, key: str) -> bytes:
     """
-    Download a file from S3 to a local path.
+    Download a file from S3 and return its content as bytes.
     """
-    async with s3_client.get_object(Bucket=bucket, Key=key) as response:
-        async with aiofiles.open(download_path, 'wb') as f:
-            while True:
-                chunk = await response['Body'].read(4096)
-                if not chunk:
-                    break
-                await f.write(chunk)
+    response = await s3_client.get_object(Bucket=bucket, Key=key)
+    content = b""
+    while True:
+        chunk = await response['Body'].read(4096)
+        if not chunk:
+            break
+        content += chunk
+    return content
+
+
+async def s3_file_exists(s3_client: BaseClient, bucket: str, key: str) -> bool:
+    """
+    Check if a file exists in S3.
+    Returns True if the file exists, False otherwise.
+    """
+    try:
+        await s3_client.head_object(Bucket=bucket, Key=key)
+        return True
+    except ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            return False
+        raise
+
 
 def generate_s3_key(filename: str, version: int) -> str:
     """generate unique key for the file"""

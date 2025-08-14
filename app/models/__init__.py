@@ -45,6 +45,7 @@ class KnowledgeBaseResource(Document):
 
     class Settings:
         # mongodb collection name
+        # todo rename
         name = "knowledge_base_files"
         # todo make unique index
         # indexes = [
