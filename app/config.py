@@ -16,6 +16,7 @@ class PipelineConfig:
     SPLIT_OVERLAP = 40
     SEPARATORS = ["\n\n", "\n", " "]
     SPLIT_UNIT = "token"
+    # dimension taken from model
     EMBEDDING_DIMENSION = 384
 
 class AppConfig(BaseSettings):

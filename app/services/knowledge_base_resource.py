@@ -1,4 +1,6 @@
+import asyncio
 import datetime
+import logging
 
 from botocore.client import BaseClient
 
@@ -9,6 +11,7 @@ from app.schemas.knowledge_base_resources import KnowledgeBaseResourceCreate, Kn
 from beanie import PydanticObjectId
 from app.exceptions import ResourceConflict, ResourceNotFound
 from app.services.s3 import generate_s3_key, generate_presigned_url
+from app.services.tasks import run_pdf_indexing_task, q
 
 
 async def generate_s3_presigned_url_for_resource(filename: str, version: int, s3_client: BaseClient) -> tuple[str, str]:
@@ -60,6 +63,8 @@ def validate_status_transition(current_status: str, new_status: str):
 
 async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseResourceUpdate | KnowledgeBaseResourcePartialUpdate, partial = False) -> KnowledgeBaseResource:
     resource = await KnowledgeBaseResource.get(resource_id)
+    logging.info(data)
+
     if not resource:
         raise ResourceNotFound("Resource not found")
 
@@ -72,14 +77,26 @@ async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseReso
     update_data = data.model_dump(exclude_unset=partial)
     updated_at = datetime.datetime.now(datetime.timezone.utc)
     update_data["updated_at"] = updated_at
-    for key, value in update_data.items():
-        setattr(resource, key, value)
-    try:
-        await resource.save()
-    except Exception as e:
-        if hasattr(e, "details") and "E11000" in str(e):
-            raise ResourceConflict("Resource with this filename, version, and knowledge_base_id already exists.")
-        raise
+
+    # run pdf indexing
+    if data.status == StatusEnum.UPLOADED:
+        logging.info("Running pdf indexing pipeline")
+        loop = asyncio.get_event_loop()
+        enqueue_task = lambda: q.enqueue(run_pdf_indexing_task, resource_id)
+
+        # need to run in separate thread, enqueue_task is blocking call
+        job = await loop.run_in_executor(None, enqueue_task)
+        update_data["job_id"] = job.id
+        # update_data["status"] = StatusEnum.INGESTING
+
+    # for key, value in update_data.items():
+    #     setattr(resource, key, value)
+    # try:
+    #     await resource.save()
+    # except Exception as e:
+    #     if hasattr(e, "details") and "E11000" in str(e):
+    #         raise ResourceConflict("Resource with this filename, version, and knowledge_base_id already exists.")
+    #     raise
     return resource
 
 async def delete_resource(resource_id: PydanticObjectId) -> None:

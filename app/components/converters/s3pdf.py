@@ -1,6 +1,5 @@
 import asyncio
 
-import uvloop
 from haystack import component, Document
 from haystack.components.converters.pypdf import PyPDFToDocument
 from haystack.dataclasses import ByteStream

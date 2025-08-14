@@ -1,5 +1,6 @@
 from haystack import Pipeline
 from haystack.components.preprocessors import DocumentCleaner, RecursiveDocumentSplitter
+from haystack.document_stores.types import DuplicatePolicy
 from haystack.utils import Secret
 from haystack_integrations.document_stores.pgvector import PgvectorDocumentStore
 from haystack.components.writers import DocumentWriter
@@ -14,7 +15,9 @@ pgvector_document_store = PgvectorDocumentStore(
     embedding_dimension=app_config.PIPELINE_CONFIG.EMBEDDING_DIMENSION,
     search_strategy="hnsw" #(ANN) algorithm, graph-based index faster than exact_nearest_neighbor
 )
-document_writer = DocumentWriter(document_store=pgvector_document_store)
+# use overwriting policy
+document_writer = DocumentWriter(document_store=pgvector_document_store,
+                                 policy=DuplicatePolicy.OVERWRITE)
 s3_pdf_converter = S3PDFToDocument()
 pdf_cleaner = DocumentCleaner()
 # fast embed using CPU on all cores (parallel=0)
@@ -43,5 +46,3 @@ pdf_index_pipeline.connect("pdf_converter", "pdf_cleaner")
 pdf_index_pipeline.connect("pdf_cleaner", "pdf_splitter")
 pdf_index_pipeline.connect("pdf_splitter", "pdf_embedder")
 pdf_index_pipeline.connect("pdf_embedder", "document_writer")
-
-pdf_index_pipeline.draw(path="pdf_index_pipeline.png")

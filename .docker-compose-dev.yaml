@@ -48,6 +48,9 @@ services:
     build: .
     restart: always
     container_name: worker
+    environment:
+      # macos required
+      OBJC_DISABLE_INITIALIZE_FORK_SAFETY: "YES"
     env_file:
       - .env.docker
     depends_on:

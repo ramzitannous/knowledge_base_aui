@@ -23,3 +23,4 @@ redis_client = Redis(
     port=app_config.REDIS_PORT,
     db=app_config.REDIS_DB
 )
+
