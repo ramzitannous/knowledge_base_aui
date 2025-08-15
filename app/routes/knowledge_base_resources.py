@@ -32,19 +32,21 @@ async def create_resource(data: KnowledgeBaseResourceCreate, s3_client: BaseClie
     return KnowledgeBaseResourceCreateResponse(s3_presigned_url=s3_presigned_url,
                                                resource=created_resource)
 
-@router.get("/{knowledge_base_id}/", response_model=List[KnowledgeBaseResource])
+@router.get("/{knowledge_base_id}/", response_model=List[KnowledgeBaseResource],
+            status_code=status.HTTP_200_OK)
 async def list_resources(knowledge_base_id: str, offset: int = 0, limit: int = 10):
     """
     list resources by knowledge base id
     """
     return await service.list_resources_by_kb(knowledge_base_id=knowledge_base_id, offset=offset, limit=limit)
 
-@router.get("/{resource_id}", response_model=KnowledgeBaseResource)
+@router.get("/{resource_id}", response_model=KnowledgeBaseResource,
+            status_code=status.HTTP_200_OK)
 async def get_resource(resource_id: PydanticObjectId):
     return await service.get_resource(resource_id)
 
 
-@router.put("/{resource_id}", response_model=KnowledgeBaseResource)
+@router.put("/{resource_id}", response_model=KnowledgeBaseResource, status_code=status.HTTP_200_OK)
 async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseResourceUpdate):
     """
     - Ingesting file will start once file status is send as `uploaded`
@@ -52,7 +54,7 @@ async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseReso
     return await service.update_resource(resource_id, data)
 
 
-@router.patch("/{resource_id}", response_model=KnowledgeBaseResource)
+@router.patch("/{resource_id}", response_model=KnowledgeBaseResource, status_code=status.HTTP_200_OK)
 async def partial_update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseResourcePartialUpdate):
     """
        - Ingesting file will start once file status is send as `uploaded`

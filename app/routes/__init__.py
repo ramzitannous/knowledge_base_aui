@@ -1,2 +1,3 @@
 from .knowledge_base import router as knowledge_base_router
 from .knowledge_base_resources import router as knowledge_base_resources_router
+from .vector_search import api_router as vector_search_router

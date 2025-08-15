@@ -17,6 +17,7 @@ class PipelineConfig:
     # dimension taken from model
     EMBEDDING_DIMENSION = 384
     OCR_ENABLED = False
+    DEFAULT_TOP_K = 10
 
 
 class AppConfig(BaseSettings):

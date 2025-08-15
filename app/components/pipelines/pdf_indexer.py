@@ -1,28 +1,20 @@
 from haystack import Pipeline
 from haystack.components.writers import DocumentWriter
 from haystack.document_stores.types import DuplicatePolicy
-from haystack.utils import Secret
 from haystack_integrations.components.embedders.fastembed import FastembedDocumentEmbedder
-from haystack_integrations.document_stores.pgvector import PgvectorDocumentStore
 
 from app.components.converters.pdf_resource import PDFResourceToDocument
+from app.components.document_store import pgvector_document_store
 from app.components.fetchers.s3 import S3FileFetcher
 from app.config import app_config
 
-pg_connection_string = Secret.from_token(app_config.POSTGRES_URI)
-pgvector_document_store = PgvectorDocumentStore(
-    connection_string=pg_connection_string,
-    recreate_table=False,
-    embedding_dimension=app_config.PIPELINE_CONFIG.EMBEDDING_DIMENSION,
-    search_strategy="hnsw" #(ANN) algorithm, graph-based index faster than exact_nearest_neighbor
-)
 # use overwriting policy
 document_writer = DocumentWriter(document_store=pgvector_document_store,
                                  policy=DuplicatePolicy.OVERWRITE)
 s3_fetcher = S3FileFetcher()
 # fast embed using CPU on all cores (parallel=0)
 pdf_embedder = FastembedDocumentEmbedder(model=app_config.PIPELINE_CONFIG.EMBEDDING_MODEL,
-                                                progress_bar=True,
+                                          progress_bar=True,
                                          parallel=0)
 pdf_embedder.warm_up()
 
