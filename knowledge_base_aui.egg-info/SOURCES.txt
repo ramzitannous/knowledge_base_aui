@@ -1,7 +1,0 @@
-main.py
-pyproject.toml
-knowledge_base_aui.egg-info/PKG-INFO
-knowledge_base_aui.egg-info/SOURCES.txt
-knowledge_base_aui.egg-info/dependency_links.txt
-knowledge_base_aui.egg-info/requires.txt
-knowledge_base_aui.egg-info/top_level.txt

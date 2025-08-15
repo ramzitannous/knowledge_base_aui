@@ -1,6 +1,8 @@
 from enum import Enum
 
+import torch
 from pydantic_settings import BaseSettings
+
 
 class AppEnv(str, Enum):
     LOCAL = "local"
@@ -12,12 +14,10 @@ class AppEnv(str, Enum):
 
 class PipelineConfig:
     EMBEDDING_MODEL   = "sentence-transformers/all-MiniLM-L6-v2"
-    SPLIT_SIZE = 400
-    SPLIT_OVERLAP = 40
-    SEPARATORS = ["\n\n", "\n", " "]
-    SPLIT_UNIT = "token"
     # dimension taken from model
     EMBEDDING_DIMENSION = 384
+    OCR_ENABLED = False
+
 
 class AppConfig(BaseSettings):
     # MongoDB
@@ -80,4 +80,5 @@ class AppConfig(BaseSettings):
         else:
             device = torch.device("cpu")
             print("Using CPU")
+            return device
 app_config = AppConfig()

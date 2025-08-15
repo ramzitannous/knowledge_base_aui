@@ -1,5 +1,5 @@
-from pymongo import AsyncMongoClient
 from beanie import init_beanie
+from pymongo import AsyncMongoClient
 
 from app.config import app_config
 from app.models import KnowledgeBase, KnowledgeBaseResource

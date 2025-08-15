@@ -2,19 +2,19 @@
 import logging
 from contextlib import asynccontextmanager
 
+from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from fastapi import Depends
-
-from app.db import init_db
-from app.exceptions import ResourceConflict, ResourceNotFound
-from app.routes import knowledge_base_router, knowledge_base_resources_router
-from app.deps import verify_api_key
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
+
+from app.db import init_db
+from app.deps import verify_api_key
+from app.exceptions import ResourceConflict, ResourceNotFound
+from app.routes import knowledge_base_router, knowledge_base_resources_router
 
 
 @asynccontextmanager

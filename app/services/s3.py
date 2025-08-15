@@ -1,6 +1,5 @@
 import uuid
 
-import aiofiles
 from botocore.client import BaseClient
 from botocore.exceptions import ClientError
 

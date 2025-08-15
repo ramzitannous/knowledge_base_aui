@@ -1,7 +1,7 @@
 """
 Fastapi dependencies
 """
-from fastapi import Header, HTTPException, status, Depends, Security
+from fastapi import HTTPException, status, Security
 from fastapi.security import APIKeyHeader
 
 from app.config import app_config

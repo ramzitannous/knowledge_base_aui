@@ -2,14 +2,14 @@ import asyncio
 import datetime
 import logging
 
+from beanie import PydanticObjectId
 from botocore.client import BaseClient
 
 from app.config import app_config
+from app.exceptions import ResourceConflict, ResourceNotFound
 from app.models import KnowledgeBaseResource, KnowledgeBase, StatusEnum
 from app.schemas.knowledge_base_resources import KnowledgeBaseResourceCreate, KnowledgeBaseResourceUpdate, \
     KnowledgeBaseResourcePartialUpdate
-from beanie import PydanticObjectId
-from app.exceptions import ResourceConflict, ResourceNotFound
 from app.services.s3 import generate_s3_key, generate_presigned_url
 from app.services.tasks import run_pdf_indexing_task, q
 
@@ -87,17 +87,18 @@ async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseReso
         # need to run in separate thread, enqueue_task is blocking call
         job = await loop.run_in_executor(None, enqueue_task)
         update_data["job_id"] = job.id
-        # update_data["status"] = StatusEnum.INGESTING
+        update_data["status"] = StatusEnum.INGESTING
 
-    # for key, value in update_data.items():
-    #     setattr(resource, key, value)
-    # try:
-    #     await resource.save()
-    # except Exception as e:
-    #     if hasattr(e, "details") and "E11000" in str(e):
-    #         raise ResourceConflict("Resource with this filename, version, and knowledge_base_id already exists.")
-    #     raise
+    for key, value in update_data.items():
+        setattr(resource, key, value)
+    try:
+        await resource.save()
+    except Exception as e:
+        if hasattr(e, "details") and "E11000" in str(e):
+            raise ResourceConflict("Resource with this filename, version, and knowledge_base_id already exists.")
+        raise
     return resource
+
 
 async def delete_resource(resource_id: PydanticObjectId) -> None:
     resource = await KnowledgeBaseResource.get(resource_id)

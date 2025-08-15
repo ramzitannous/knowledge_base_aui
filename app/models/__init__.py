@@ -2,8 +2,8 @@ import datetime
 from enum import Enum
 from typing import Optional
 
-from beanie import Document, Indexed
-from pydantic import Field, validator, field_validator
+from beanie import Document, Indexed, PydanticObjectId
+from pydantic import Field
 
 
 class KnowledgeBase(Document):
@@ -35,7 +35,7 @@ class StatusEnum(str, Enum):
 
 class KnowledgeBaseResource(Document):
     """Resource file belonging to a Knowledge Base"""
-    knowledge_base_id: str = Field(..., description="Reference to KnowledgeBase _id")
+    knowledge_base_id: PydanticObjectId = Field(..., description="Reference to KnowledgeBase _id")
     filename: str = Field(..., description="Name of the file")
     s3_key: Optional[str] = Field(None, description="S3 key of the file")
     size: Optional[int] = Field(None, description="Size of the file in bytes")

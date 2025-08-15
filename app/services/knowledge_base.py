@@ -1,9 +1,11 @@
 import datetime
 
+from beanie import PydanticObjectId
+
+from app.exceptions import ResourceConflict, ResourceNotFound
 from app.models import KnowledgeBase
 from app.schemas import KnowledgeBaseCreate, KnowledgeBaseUpdate, KnowledgeBasePartialUpdate
-from beanie import PydanticObjectId
-from app.exceptions import ResourceConflict, ResourceNotFound
+
 
 async def create_knowledge_base(data: KnowledgeBaseCreate) -> KnowledgeBase:
     updated_at = datetime.datetime.now(datetime.timezone.utc)

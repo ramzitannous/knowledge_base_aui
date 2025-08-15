@@ -21,4 +21,8 @@ dependencies = [
     "fastembed>=0.7.1",
     "fastembed-haystack>=1.5.0",
     "tiktoken>=0.11.0",
+    "docling-haystack>=0.1.1",
+    "pytesseract>=0.3.13",
+    "pillow>=11.3.0",
+    "mlx-vlm>=0.3.2",
 ]

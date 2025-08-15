@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, field_validator, ValidationError
+from pydantic import BaseModel, Field, field_validator
 
 from app.models import StatusEnum, KnowledgeBaseResource
+
 
 # Shared validator for filename
 def validate_pdf_filename(v: str) -> str:
