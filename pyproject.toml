@@ -25,4 +25,6 @@ dependencies = [
     "pytesseract>=0.3.13",
     "pillow>=11.3.0",
     "mlx-vlm>=0.3.2",
+    "rich>=14.1.0",
+    "hayhooks>=0.10.1",
 ]

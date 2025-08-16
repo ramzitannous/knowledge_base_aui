@@ -7,7 +7,6 @@ from beanie import PydanticObjectId
 from beanie.odm.operators.update.general import Set
 from rq import Queue
 
-from app.config import app_config
 from app.db import init_db
 from app.models import KnowledgeBaseResource, StatusEnum
 from app.schemas.metadata import FileResourceMetadata

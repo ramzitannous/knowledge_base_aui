@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from app.schemas.metadata import FileResourceMetadataFilters, FileResourceMetadata
 
 
-class VectorSearchInput(BaseModel):
+class SearchInput(BaseModel):
     query: str = Field(..., description="Natural language query to search for")
     top_k: Optional[int] = Field(None, description="Number of results to return", gt=3, le=100)
     metadata_filters: Optional[FileResourceMetadataFilters] = None

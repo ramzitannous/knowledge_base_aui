@@ -1,10 +1,14 @@
-import asyncio
+from hayhooks import streaming_generator
+from rich.console import Console
+from rich.markdown import Markdown
 
-import nest_asyncio
-
+from app.components.pipelines.rag import rag_pipeline
 from app.db import init_db
 from app.models import KnowledgeBaseResource
 from app.schemas.metadata import FileResourceMetadata
+
+console = Console()
+
 
 async def main():
     from app.components.pipelines.pdf_indexer import pdf_index_pipeline
@@ -47,8 +51,8 @@ def check_vector_retriever():
         }
     })["vector_retriever"]["documents"]
     for doc in docs:
-        print(doc.content, doc.score)
-        print("-" * 80)
+        console.print(Markdown(doc.content), Markdown(f"score: {doc.score}"))
+        console.print("-" * 80)
 
 def run_index_pipeline():
     from app.components.pipelines.pdf_indexer import pdf_index_pipeline
@@ -70,7 +74,24 @@ def run_index_pipeline():
         }
     })
 
+def run_rag_pipeline():
+    text = "what is this task about ?"
+    pipeline_data = {
+        "text_embedder": {
+            "text": text
+        },
+        "prompt_builder": {
+            "query": text
+        }
+    }
+    # make pipeline support streaming
+    generator_async = streaming_generator(
+            pipeline=rag_pipeline,
+            pipeline_run_args=pipeline_data)
+    for result in generator_async:
+        console.print(result.content, end="")
+
 if __name__ == "__main__":
-    run_index_pipeline()
-# nest_asyncio.apply()
-# asyncio.run(main())
+    run_rag_pipeline()
+    # nest_asyncio.apply()
+    # asyncio.run(run_rag_pipeline())
