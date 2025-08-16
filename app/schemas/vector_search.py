@@ -35,8 +35,7 @@ class VectorSearchResponse(BaseModel):
             section = f"{' / '.join(doc_chunk.meta.headings)}"
         else:
             section = ""
-        page_no = doc_chunk.meta.doc_items[0].prov[0].page_no if doc_chunk.meta.doc_items[0].prov else -1
-        source_metadata = SourceMetadata(page_no=page_no,
+        source_metadata = SourceMetadata(page_no=document.meta.get("page_no", -1),
                                          section=section,
                                          version=document.meta.get("version", 1),
                                          knowledge_base_id=document.meta.get("knowledge_base_id", ""),

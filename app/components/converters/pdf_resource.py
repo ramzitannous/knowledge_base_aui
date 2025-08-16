@@ -28,12 +28,16 @@ class FileResourceMetaExtractor(MetaExtractor):
 
     def extract_chunk_meta(self, chunk: BaseChunk, resources_metadata: FileResourceMetadata) -> dict[str, Any]:
         """Extract chunk meta with extra metadata."""
+        dl_meta = chunk.export_json_dict()
+        # remove page_no from dl_meta and add it to resources_metadata, to make it easier for filtering
+        page_no = dl_meta["meta"]["doc_items"][0]["prov"][0].get("page_no")
         return {
-                "dl_meta": chunk.export_json_dict(),
+                "dl_meta": dl_meta,
                  "knowledge_base_id": resources_metadata.knowledge_base_id,
                  "version": resources_metadata.version,
                  "file_resource_id": resources_metadata.file_resource_id,
-                 "filename": resources_metadata.filename
+                 "filename": resources_metadata.filename,
+                 "page_no": page_no
                 }
 
 @component

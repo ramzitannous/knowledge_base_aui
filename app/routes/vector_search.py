@@ -10,13 +10,15 @@ api_router = APIRouter()
 async def vector_search_post(data: VectorSearchInput):
     top_k = data.top_k
     query = data.query
+
     # build retriever filters https://haystack.deepset.ai/tutorials/31_metadata_filtering
     conditions = []
     if data.metadata_filters is not None:
         for key, value in data.metadata_filters.model_dump().items():
+            field  = f"meta.{key}"
             if value is not None:
                 conditions.append({
-                    "field": key,
+                    "field": field,
                     "operator": "==",
                     "value": value
                 })

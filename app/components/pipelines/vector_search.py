@@ -1,4 +1,4 @@
-from haystack import Pipeline, AsyncPipeline
+from haystack import AsyncPipeline
 from haystack_integrations.components.embedders.fastembed import FastembedTextEmbedder
 from haystack_integrations.components.retrievers.pgvector.embedding_retriever import PgvectorEmbeddingRetriever
 

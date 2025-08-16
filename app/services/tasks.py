@@ -7,7 +7,6 @@ from beanie import PydanticObjectId
 from beanie.odm.operators.update.general import Set
 from rq import Queue
 
-from app.components.pipelines.pdf_indexer import pdf_index_pipeline
 from app.config import app_config
 from app.db import init_db
 from app.models import KnowledgeBaseResource, StatusEnum
@@ -30,6 +29,9 @@ async def update_knowledge_base_resource_status(kb_resource_id: PydanticObjectId
 
 async def run_pdf_indexing_async(kb_resource_id: PydanticObjectId):
     # initialize beanie on worker startup, todo move to worker startup event
+    # import here to avoid embedder warming up when server starts
+    from app.components.pipelines.pdf_indexer import pdf_index_pipeline
+
     await init_db()
     logger.info("Running pdf indexing pipeline")
     kb_resource = await KnowledgeBaseResource.get(kb_resource_id)
