@@ -14,7 +14,7 @@ from slowapi.util import get_remote_address
 from app.db import init_db
 from app.deps import verify_api_key
 from app.exceptions import ResourceConflict, ResourceNotFound
-from app.routes import knowledge_base_router, knowledge_base_resources_router, vector_search_router, rag_router
+from app.routes import knowledge_base_router, file_resources_router, vector_search_router, rag_router
 
 
 @asynccontextmanager
@@ -52,6 +52,6 @@ async def general_exception_handler(request: Request, exc: Exception):
     )
 
 app.include_router(knowledge_base_router, prefix="/knowledge-base", tags=["Knowledge Base"])
-app.include_router(knowledge_base_resources_router, prefix="/knowledge-base-resources", tags=["Knowledge Base Resources"])
+app.include_router(file_resources_router, prefix="/file-resources", tags=["File Resources"])
 app.include_router(vector_search_router, prefix="/vector-search", tags=["Vector Search"])
 app.include_router(rag_router, prefix="/rag", tags=["Rag Streaming"])

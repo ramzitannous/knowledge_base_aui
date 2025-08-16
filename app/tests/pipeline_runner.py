@@ -4,7 +4,7 @@ from rich.markdown import Markdown
 
 from app.components.pipelines.rag import rag_pipeline
 from app.db import init_db
-from app.models import KnowledgeBaseResource
+from app.models import FileResource
 from app.schemas.metadata import FileResourceMetadata
 
 console = Console()
@@ -14,7 +14,7 @@ async def main():
     from app.components.pipelines.pdf_indexer import pdf_index_pipeline
     await init_db()
     id = "689cf5bd4b7d61f6331816d4"
-    kb_resource = await KnowledgeBaseResource.get(id)
+    kb_resource = await FileResource.get(id)
     metadata = FileResourceMetadata(
         filename=kb_resource.filename,
         version=kb_resource.version,

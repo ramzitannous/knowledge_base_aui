@@ -7,19 +7,21 @@ from fastapi.params import Query
 
 from app.config import app_config
 from app.deps import s3_dep
-from app.models import KnowledgeBaseResource
-from app.schemas.knowledge_base_resources import (
-    KnowledgeBaseResourceCreate,
-    KnowledgeBaseResourceUpdate,
-    KnowledgeBaseResourcePartialUpdate, KnowledgeBaseResourceCreateResponse, validate_pdf_filename,
+from app.models import FileResource
+from app.schemas.file_resources import (
+    FileResourceCreate,
+    FileResourceUpdate,
+    FileResourcePartialUpdate,
+    FileResourceCreateResponse,
+    validate_pdf_filename,
 )
-from app.services import knowledge_base_resource as service
+from app.services import file_resources as service
 from app.services.s3 import delete_s3_file
 
 router = APIRouter()
 
-@router.post("/", response_model=KnowledgeBaseResourceCreateResponse, status_code=status.HTTP_201_CREATED)
-async def create_resource(data: KnowledgeBaseResourceCreate, s3_client: BaseClient = Depends(s3_dep)):
+@router.post("/", response_model=FileResourceCreateResponse, status_code=status.HTTP_201_CREATED)
+async def create_resource(data: FileResourceCreate, s3_client: BaseClient = Depends(s3_dep)):
     """
         - Create KB resource and return s3_presigned_url to be used to upload the actual file
         - This separation was used to offload the actual file upload from the api
@@ -30,10 +32,10 @@ async def create_resource(data: KnowledgeBaseResourceCreate, s3_client: BaseClie
     validate_pdf_filename(data.filename)
     s3_presigned_url, s3_key = await service.generate_s3_presigned_url_for_resource(data.filename, data.version, s3_client)
     created_resource = await service.create_resource(data, s3_key)
-    return KnowledgeBaseResourceCreateResponse(s3_presigned_url=s3_presigned_url,
+    return FileResourceCreateResponse(s3_presigned_url=s3_presigned_url,
                                                resource=created_resource)
 
-@router.get("/{knowledge_base_id}/", response_model=List[KnowledgeBaseResource],
+@router.get("/{knowledge_base_id}/", response_model=List[FileResource],
             status_code=status.HTTP_200_OK)
 async def list_resources(knowledge_base_id: str, offset: int = 0, limit: int = 10):
     """
@@ -41,33 +43,33 @@ async def list_resources(knowledge_base_id: str, offset: int = 0, limit: int = 1
     """
     return await service.list_resources_by_kb(knowledge_base_id=knowledge_base_id, offset=offset, limit=limit)
 
-@router.get("/{resource_id}", response_model=KnowledgeBaseResource,
+@router.get("/{file_resource_id}", response_model=FileResource,
             status_code=status.HTTP_200_OK)
-async def get_resource(resource_id: PydanticObjectId):
-    return await service.get_resource(resource_id)
+async def get_resource(file_resource_id: PydanticObjectId):
+    return await service.get_resource(file_resource_id)
 
 
-@router.put("/{resource_id}", response_model=KnowledgeBaseResource, status_code=status.HTTP_200_OK)
-async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseResourceUpdate):
+@router.put("/{file_resource_id}", response_model=FileResource, status_code=status.HTTP_200_OK)
+async def update_resource(file_resource_id: PydanticObjectId, data: FileResourceUpdate):
     """
     - Ingesting file will start once file status is send as `uploaded`
     """
-    return await service.update_resource(resource_id, data)
+    return await service.update_resource(file_resource_id, data)
 
 
-@router.patch("/{resource_id}", response_model=KnowledgeBaseResource, status_code=status.HTTP_200_OK)
-async def partial_update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseResourcePartialUpdate):
+@router.patch("/{file_resource_id}", response_model=FileResource, status_code=status.HTTP_200_OK)
+async def partial_update_resource(file_resource_id: PydanticObjectId, data: FileResourcePartialUpdate):
     """
        - Ingesting file will start once file status is send as `uploaded`
     """
-    return await service.update_resource(resource_id, data, True)
+    return await service.update_resource(file_resource_id, data, True)
 
 
-@router.delete("/{resource_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_resource(resource_id: PydanticObjectId, delete_file=Query(True, description="Control if you want to Delete file from s3"),
+@router.delete("/{file_resource_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_resource(file_resource_id: PydanticObjectId, delete_file=Query(True, description="Control if you want to Delete file from s3"),
                           s3_client: BaseClient = Depends(s3_dep)):
     # ensure resource exists
-    resource = await service.get_resource(resource_id)
+    resource = await service.get_resource(file_resource_id)
     if delete_file:
         s3_key = resource.s3_key
         # if file does not exists in s3, no exception will happen, this is by design

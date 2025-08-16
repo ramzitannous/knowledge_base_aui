@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 
-from app.models import StatusEnum, KnowledgeBaseResource
+from app.models import StatusEnum, FileResource
 
 
 # Shared validator for filename
@@ -9,7 +9,7 @@ def validate_pdf_filename(v: str) -> str:
         raise ValueError("filename must have a .pdf extension")
     return v
 
-class KnowledgeBaseResourceCreate(BaseModel):
+class FileResourceCreate(BaseModel):
     knowledge_base_id: str
     filename: str
     version: int = 1
@@ -19,11 +19,11 @@ class KnowledgeBaseResourceCreate(BaseModel):
     def filename_must_be_pdf(cls, v):
         return validate_pdf_filename(v)
 
-class KnowledgeBaseResourceCreateResponse(BaseModel):
+class FileResourceCreateResponse(BaseModel):
     s3_presigned_url: str
-    resource: KnowledgeBaseResource
+    resource: FileResource
 
-class KnowledgeBaseResourceUpdate(BaseModel):
+class FileResourceUpdate(BaseModel):
     filename: str
     status: StatusEnum
     error: str
@@ -32,7 +32,7 @@ class KnowledgeBaseResourceUpdate(BaseModel):
     def filename_must_be_pdf(cls, v):
         return validate_pdf_filename(v)
 
-class KnowledgeBaseResourcePartialUpdate(BaseModel):
+class FileResourcePartialUpdate(BaseModel):
     filename: str = None
     status: StatusEnum = None
     error: str = None

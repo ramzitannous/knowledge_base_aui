@@ -8,7 +8,7 @@ from beanie.odm.operators.update.general import Set
 from rq import Queue
 
 from app.db import init_db
-from app.models import KnowledgeBaseResource, StatusEnum
+from app.models import FileResource, StatusEnum
 from app.schemas.metadata import FileResourceMetadata
 from app.services.clients import redis_client
 
@@ -19,11 +19,11 @@ q = Queue(connection=redis_client)
 
 async def update_knowledge_base_resource_status(kb_resource_id: PydanticObjectId, status: StatusEnum, error=None):
     data_to_update = {
-        KnowledgeBaseResource.status:status
+        FileResource.status:status
     }
     if error:
-        data_to_update[KnowledgeBaseResource.error] = error
-    await (KnowledgeBaseResource.find_one(KnowledgeBaseResource.id == kb_resource_id)
+        data_to_update[FileResource.error] = error
+    await (FileResource.find_one(FileResource.id == kb_resource_id)
            .update(Set(data_to_update)))
 
 async def run_pdf_indexing_async(kb_resource_id: PydanticObjectId):
@@ -33,7 +33,7 @@ async def run_pdf_indexing_async(kb_resource_id: PydanticObjectId):
 
     await init_db()
     logger.info("Running pdf indexing pipeline")
-    kb_resource = await KnowledgeBaseResource.get(kb_resource_id)
+    kb_resource = await FileResource.get(kb_resource_id)
     metadata = FileResourceMetadata(
         filename=kb_resource.filename,
         version=kb_resource.version,

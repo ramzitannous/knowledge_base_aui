@@ -7,9 +7,9 @@ from botocore.client import BaseClient
 
 from app.config import app_config
 from app.exceptions import ResourceConflict, ResourceNotFound
-from app.models import KnowledgeBaseResource, KnowledgeBase, StatusEnum
-from app.schemas.knowledge_base_resources import KnowledgeBaseResourceCreate, KnowledgeBaseResourceUpdate, \
-    KnowledgeBaseResourcePartialUpdate
+from app.models import FileResource, KnowledgeBase, StatusEnum
+from app.schemas.file_resources import FileResourceCreate, FileResourceUpdate, \
+    FileResourcePartialUpdate
 from app.services.s3 import generate_s3_key, generate_presigned_url
 from app.services.tasks import run_pdf_indexing_task, q
 
@@ -19,12 +19,12 @@ async def generate_s3_presigned_url_for_resource(filename: str, version: int, s3
     s3_presigned_url = await generate_presigned_url(s3_client, app_config.AWS_BUCKET_NAME, s3_key)
     return s3_presigned_url, s3_key
 
-async def create_resource(data: KnowledgeBaseResourceCreate, s3_key: str) -> KnowledgeBaseResource:
+async def create_resource(data: FileResourceCreate, s3_key: str) -> FileResource:
     # Ensure the knowledge base exists
     kb = await KnowledgeBase.get(data.knowledge_base_id)
     if not kb:
         raise ResourceNotFound("Knowledge base not found")
-    resource = KnowledgeBaseResource(**data.model_dump(), s3_key=s3_key)
+    resource = FileResource(**data.model_dump(), s3_key=s3_key)
     try:
         await resource.insert()
     except Exception as e:
@@ -33,25 +33,30 @@ async def create_resource(data: KnowledgeBaseResourceCreate, s3_key: str) -> Kno
         raise
     return resource
 
-async def get_resource(resource_id: PydanticObjectId) -> KnowledgeBaseResource:
-    resource = await KnowledgeBaseResource.get(resource_id)
+async def get_resource(resource_id: PydanticObjectId) -> FileResource:
+    resource = await FileResource.get(resource_id)
     if not resource:
         raise ResourceNotFound("Resource not found")
     return resource
 
-def validate_status_transition(current_status: str, new_status: str):
+def enforce_status_transition(current_status: StatusEnum, new_status: StatusEnum):
     """
     Enforce allowed status transitions:
     no_file -> uploading -> uploaded
     uploaded -> ingesting -> done internally changed
-    'error' can be set from any status at any time
+    'error', 're_ingest' can be set from any status at any time,
+    except 're_ingest' is NOT allowed if already ingesting
     """
+    if new_status == StatusEnum.RE_INGEST:
+        if current_status == StatusEnum.INGESTING:
+            raise ResourceConflict("Cannot re-ingest while file is already ingesting.")
+        return
     if new_status == StatusEnum.ERROR:
         return
     status_flow = [
         StatusEnum.NO_FILE,
         StatusEnum.UPLOADING,
-        StatusEnum.UPLOADED,
+        StatusEnum.UPLOADED
     ]
     try:
         current_index = status_flow.index(current_status)
@@ -61,8 +66,8 @@ def validate_status_transition(current_status: str, new_status: str):
     if new_status != next_allowed:
         raise ResourceConflict(f"Invalid status transition: {current_status} -> {new_status}")
 
-async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseResourceUpdate | KnowledgeBaseResourcePartialUpdate, partial = False) -> KnowledgeBaseResource:
-    resource = await KnowledgeBaseResource.get(resource_id)
+async def update_resource(resource_id: PydanticObjectId, data: FileResourceUpdate | FileResourcePartialUpdate, partial = False) -> FileResource:
+    resource = await FileResource.get(resource_id)
     logging.info(data)
 
     if not resource:
@@ -72,14 +77,14 @@ async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseReso
     if resource.status == data.status:
         raise ResourceConflict("Can't update resource with same status")
 
-    validate_status_transition(resource.status, data.status)
+    enforce_status_transition(resource.status, data.status)
 
     update_data = data.model_dump(exclude_unset=partial)
     updated_at = datetime.datetime.now(datetime.timezone.utc)
     update_data["updated_at"] = updated_at
 
-    # run pdf indexing
-    if data.status == StatusEnum.UPLOADED:
+    # run pdf indexing after upload done or re-ingest
+    if data.status in [StatusEnum.UPLOADED, StatusEnum.RE_INGEST]:
         logging.info("Running pdf indexing pipeline")
         loop = asyncio.get_event_loop()
         enqueue_task = lambda: q.enqueue(run_pdf_indexing_task, resource_id)
@@ -101,13 +106,13 @@ async def update_resource(resource_id: PydanticObjectId, data: KnowledgeBaseReso
 
 
 async def delete_resource(resource_id: PydanticObjectId) -> None:
-    resource = await KnowledgeBaseResource.get(resource_id)
+    resource = await FileResource.get(resource_id)
     if not resource:
         raise ResourceNotFound("Resource not found")
     await resource.delete()
 
-async def list_resources_by_kb(knowledge_base_id: str, offset: int = 0, limit: int = 100) -> list[KnowledgeBaseResource]:
+async def list_resources_by_kb(knowledge_base_id: str, offset: int = 0, limit: int = 100) -> list[FileResource]:
     kb = await KnowledgeBase.get(knowledge_base_id)
     if not kb:
         raise ResourceNotFound("Knowledge base not found")
-    return await KnowledgeBaseResource.find(KnowledgeBaseResource.knowledge_base_id == knowledge_base_id).skip(offset).limit(limit).to_list()
+    return await FileResource.find(FileResource.knowledge_base_id == knowledge_base_id).skip(offset).limit(limit).to_list()

@@ -24,6 +24,7 @@ class StatusEnum(str, Enum):
     DONE = "done"
     ERROR = "error"
     NO_FILE = "no_file"
+    RE_INGEST = "re_ingest"
 
     def __str__(self):
         return self.value
@@ -33,7 +34,7 @@ class StatusEnum(str, Enum):
 
 
 
-class KnowledgeBaseResource(Document):
+class FileResource(Document):
     """Resource file belonging to a Knowledge Base"""
     knowledge_base_id: PydanticObjectId = Field(..., description="Reference to KnowledgeBase _id")
     filename: str = Field(..., description="Name of the file")
@@ -47,11 +48,4 @@ class KnowledgeBaseResource(Document):
     updated_at: Optional[datetime.datetime] = None
 
     class Settings:
-        # mongodb collection name
-        # todo rename
-        name = "knowledge_base_files"
-        # todo make unique index
-        # indexes = [
-        #     # Compound unique index on (knowledge_base_id, filename, version)
-        #     [("knowledge_base_id", 1), ("filename", 1),("version", 1), {"unique": True}]
-        # ]
+        name = "file_resources"
