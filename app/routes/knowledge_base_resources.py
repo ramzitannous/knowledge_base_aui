@@ -11,7 +11,7 @@ from app.models import KnowledgeBaseResource
 from app.schemas.knowledge_base_resources import (
     KnowledgeBaseResourceCreate,
     KnowledgeBaseResourceUpdate,
-    KnowledgeBaseResourcePartialUpdate, KnowledgeBaseResourceCreateResponse,
+    KnowledgeBaseResourcePartialUpdate, KnowledgeBaseResourceCreateResponse, validate_pdf_filename,
 )
 from app.services import knowledge_base_resource as service
 from app.services.s3 import delete_s3_file
@@ -27,6 +27,7 @@ async def create_resource(data: KnowledgeBaseResourceCreate, s3_client: BaseClie
         1. create s3_presigned_url, if this failed, no resource will be created
         2. create actual resource when s3_presigned_url is ready
     """
+    validate_pdf_filename(data.filename)
     s3_presigned_url, s3_key = await service.generate_s3_presigned_url_for_resource(data.filename, data.version, s3_client)
     created_resource = await service.create_resource(data, s3_key)
     return KnowledgeBaseResourceCreateResponse(s3_presigned_url=s3_presigned_url,

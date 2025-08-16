@@ -17,7 +17,7 @@ class PipelineConfig:
     EMBEDDING_MODEL   = "sentence-transformers/all-MiniLM-L6-v2"
     # dimension taken from model
     EMBEDDING_DIMENSION = 384
-    OCR_ENABLED = False
+    OCR_ENABLED = True
     DEFAULT_TOP_K = 10
     LLM_MODEL = "deepseek/deepseek-chat-v3-0324:free"
     LLM_SYSTEM_PROMPT = """

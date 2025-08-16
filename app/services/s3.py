@@ -4,12 +4,13 @@ from botocore.client import BaseClient
 from botocore.exceptions import ClientError
 
 
-async def generate_presigned_url(s3_client: BaseClient, bucket: str, key: str, expires_in=3600):
+async def generate_presigned_url(s3_client: BaseClient, bucket: str, key: str, expires_in=3600,
+                                 operation: str = 'put_object'):
     """
-    Generate a presigned URL for an S3 object.
+    Generate a presigned URL for an S3 object operation (PUT or GET).
     """
     return await s3_client.generate_presigned_url(
-        'get_object',
+        operation,
         Params={'Bucket': bucket, 'Key': key},
         ExpiresIn=expires_in
     )
