@@ -20,7 +20,7 @@ from app.schemas.file_resources import (
 from app.services import file_resources as service
 from app.services.s3 import delete_s3_file
 
-router = APIRouter()
+router = APIRouter(prefix="/file-resources", tags=["File Resources"])
 
 @router.post("/", response_model=FileResourceCreateResponse, status_code=status.HTTP_201_CREATED)
 async def create_resource(data: FileResourceCreate, s3_client: BaseClient = Depends(s3_dep)):

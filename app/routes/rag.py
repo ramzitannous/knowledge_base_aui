@@ -10,7 +10,7 @@ from app.components.helpers import build_pipeline_input
 from app.components.pipelines.rag import rag_pipeline
 from app.schemas.vector_search import SearchInput
 
-api_router = APIRouter()
+api_router = APIRouter(prefix="/rag", tags=["Rag Streaming"])
 
 @api_router.post("", status_code=status.HTTP_200_OK)
 def rag_post(data: SearchInput):

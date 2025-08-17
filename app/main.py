@@ -2,7 +2,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import Depends
+from fastapi import Depends, APIRouter
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse, ORJSONResponse
@@ -11,6 +11,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
+from app.config import app_config
 from app.deps import verify_api_key
 from app.exceptions import DBDocumentNotFound, DBDocumentConflict
 from app.routes import knowledge_base_router, file_resources_router, vector_search_router, rag_router
@@ -24,14 +25,15 @@ async def lifespan(app: FastAPI):
     init_cache()
     yield
 
-
+# ORJSONResponse is a fastapi response class that returns json responses
+# with a content type of application/json
 app = FastAPI(lifespan=lifespan,
               dependencies=[Depends(verify_api_key)],
               title="Knowledge Base API",
               default_response_class=ORJSONResponse)
 
 # setup rate limiter for 10/minute
-limiter = Limiter(key_func=get_remote_address, default_limits=["10/minute"])
+limiter = Limiter(key_func=get_remote_address, default_limits=[app_config.API_RATE_LIMIT])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
@@ -56,7 +58,11 @@ async def general_exception_handler(request: Request, exc: Exception):
         }
     )
 
-app.include_router(knowledge_base_router, prefix="/knowledge-base", tags=["Knowledge Base"])
-app.include_router(file_resources_router, prefix="/file-resources", tags=["File Resources"])
-app.include_router(vector_search_router, prefix="/vector-search", tags=["Vector Search"])
-app.include_router(rag_router, prefix="/rag", tags=["Rag Streaming"])
+# V1 API Router
+v1_router = APIRouter(prefix="/api/v1")
+v1_router.include_router(knowledge_base_router)
+v1_router.include_router(file_resources_router)
+v1_router.include_router(vector_search_router)
+v1_router.include_router(rag_router)
+
+app.include_router(v1_router)

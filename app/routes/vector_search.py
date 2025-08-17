@@ -5,7 +5,7 @@ from app.components.helpers import build_pipeline_input
 from app.components.pipelines.vector_search import search_pipeline
 from app.schemas.vector_search import VectorSearchResponse, SearchInput
 
-api_router = APIRouter()
+api_router = APIRouter(prefix="/vector-search", tags=["Vector Search"])
 
 @api_router.post("", response_model=list[VectorSearchResponse], status_code=status.HTTP_200_OK)
 async def vector_search_post(data: SearchInput):

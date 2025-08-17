@@ -12,7 +12,7 @@ from app.services.knowledge_base import (
     update_knowledge_base, delete_knowledge_base
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/knowledge-bases", tags=["Knowledge Base"])
 
 @router.post("/", response_model=KnowledgeBase, status_code=status.HTTP_201_CREATED)
 async def create_kb_route(data: KnowledgeBaseCreate):
