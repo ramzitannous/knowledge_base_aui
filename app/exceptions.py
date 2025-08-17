@@ -1,7 +1,7 @@
-class ResourceConflict(Exception):
+class DBDocumentConflict(Exception):
     """Raised when a unique constraint or duplicate resource conflict occurs."""
     pass
 
-class ResourceNotFound(Exception):
+class DBDocumentNotFound(Exception):
     """Raised when a requested resource is not found."""
     pass

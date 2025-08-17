@@ -1,10 +1,10 @@
 import datetime
 
-from app.services.cache_key_builder import get_one_cache_key
+from app.services.cache import get_one_cache_key
 from beanie import PydanticObjectId
 from fastapi_cache import FastAPICache
 
-from app.exceptions import ResourceConflict, ResourceNotFound
+from app.exceptions import DBDocumentConflict, DBDocumentNotFound
 from app.models import KnowledgeBase
 from app.schemas import KnowledgeBaseCreate, KnowledgeBaseUpdate, KnowledgeBasePartialUpdate
 
@@ -16,7 +16,7 @@ async def create_knowledge_base(data: KnowledgeBaseCreate) -> KnowledgeBase:
         await kb.insert()
     except Exception as e:
         if hasattr(e, "details") and "E11000" in str(e):
-            raise ResourceConflict("KnowledgeBase with this name already exists.")
+            raise DBDocumentConflict("KnowledgeBase with this name already exists.")
         raise
     return kb
 
@@ -26,13 +26,13 @@ async def list_knowledge_bases(offset: int = 0, limit: int = 10) -> list[Knowled
 async def get_knowledge_base(kb_id: PydanticObjectId) -> KnowledgeBase:
     kb = await KnowledgeBase.get(kb_id)
     if not kb:
-        raise ResourceNotFound("KnowledgeBase not found")
+        raise DBDocumentNotFound("KnowledgeBase not found")
     return kb
 
 async def update_knowledge_base(kb_id: PydanticObjectId, data: KnowledgeBaseUpdate | KnowledgeBasePartialUpdate, partial: bool = False) -> KnowledgeBase:
     kb = await KnowledgeBase.get(kb_id)
     if not kb:
-        raise ResourceNotFound("KnowledgeBase not found")
+        raise DBDocumentNotFound("KnowledgeBase not found")
     update_data = data.model_dump(exclude_unset=partial)
     updated_at = datetime.datetime.now(datetime.timezone.utc)
     update_data["updated_at"] = updated_at
@@ -42,7 +42,7 @@ async def update_knowledge_base(kb_id: PydanticObjectId, data: KnowledgeBaseUpda
         await kb.save()
     except Exception as e:
         if hasattr(e, "details") and "E11000" in str(e):
-            raise ResourceConflict("KnowledgeBase with this name already exists.")
+            raise DBDocumentConflict("KnowledgeBase with this name already exists.")
         raise
     # invalidate cache
     await FastAPICache.clear(key=get_one_cache_key(KnowledgeBase.Settings.name,
@@ -52,7 +52,7 @@ async def update_knowledge_base(kb_id: PydanticObjectId, data: KnowledgeBaseUpda
 async def delete_knowledge_base(kb_id: PydanticObjectId) -> None:
     kb = await KnowledgeBase.get(kb_id)
     if not kb:
-        raise ResourceNotFound("KnowledgeBase not found")
+        raise DBDocumentNotFound("KnowledgeBase not found")
     # invalidate cache
     await FastAPICache.clear(key=get_one_cache_key(KnowledgeBase.Settings.name,
                                                    kb_id))

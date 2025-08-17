@@ -2,13 +2,13 @@ import asyncio
 import datetime
 import logging
 
-from app.services.cache_key_builder import get_one_cache_key
+from app.services.cache import get_one_cache_key
 from beanie import PydanticObjectId
 from botocore.client import BaseClient
 from fastapi_cache import FastAPICache
 
 from app.config import app_config
-from app.exceptions import ResourceConflict, ResourceNotFound
+from app.exceptions import DBDocumentConflict, DBDocumentNotFound
 from app.models import FileResource, KnowledgeBase, StatusEnum
 from app.schemas.file_resources import FileResourceCreate, FileResourceUpdate, \
     FileResourcePartialUpdate
@@ -25,20 +25,20 @@ async def create_resource(data: FileResourceCreate, s3_key: str) -> FileResource
     # Ensure the knowledge base exists
     kb = await KnowledgeBase.get(data.knowledge_base_id)
     if not kb:
-        raise ResourceNotFound("Knowledge base not found")
+        raise DBDocumentNotFound("Knowledge base not found")
     resource = FileResource(**data.model_dump(), s3_key=s3_key)
     try:
         await resource.insert()
     except Exception as e:
         if hasattr(e, "details") and "E11000" in str(e):
-            raise ResourceConflict("Resource with this filename, version, and knowledge_base_id already exists.")
+            raise DBDocumentConflict("Resource with this filename, version, and knowledge_base_id already exists.")
         raise
     return resource
 
 async def get_resource(resource_id: PydanticObjectId) -> FileResource:
     resource = await FileResource.get(resource_id)
     if not resource:
-        raise ResourceNotFound("Resource not found")
+        raise DBDocumentNotFound("Resource not found")
     return resource
 
 def enforce_status_transition(current_status: StatusEnum, new_status: StatusEnum):
@@ -51,7 +51,7 @@ def enforce_status_transition(current_status: StatusEnum, new_status: StatusEnum
     """
     if new_status == StatusEnum.RE_INGEST:
         if current_status == StatusEnum.INGESTING:
-            raise ResourceConflict("Cannot re-ingest while file is already ingesting.")
+            raise DBDocumentConflict("Cannot re-ingest while file is already ingesting.")
         return
     if new_status == StatusEnum.ERROR:
         return
@@ -66,18 +66,18 @@ def enforce_status_transition(current_status: StatusEnum, new_status: StatusEnum
     except ValueError:
         next_allowed = None
     if new_status != next_allowed:
-        raise ResourceConflict(f"Invalid status transition: {current_status} -> {new_status}")
+        raise DBDocumentConflict(f"Invalid status transition: {current_status} -> {new_status}")
 
 async def update_resource(resource_id: PydanticObjectId, data: FileResourceUpdate | FileResourcePartialUpdate, partial = False) -> FileResource:
     resource = await FileResource.get(resource_id)
     logging.info(data)
 
     if not resource:
-        raise ResourceNotFound("Resource not found")
+        raise DBDocumentNotFound("Resource not found")
 
     # same status cannot be updated
     if resource.status == data.status:
-        raise ResourceConflict("Can't update resource with same status")
+        raise DBDocumentConflict("Can't update resource with same status")
 
     enforce_status_transition(resource.status, data.status)
 
@@ -102,7 +102,7 @@ async def update_resource(resource_id: PydanticObjectId, data: FileResourceUpdat
         await resource.save()
     except Exception as e:
         if hasattr(e, "details") and "E11000" in str(e):
-            raise ResourceConflict("Resource with this filename, version, and knowledge_base_id already exists.")
+            raise DBDocumentConflict("Resource with this filename, version, and knowledge_base_id already exists.")
         raise
     # invalidate cache
     await FastAPICache.clear(key=get_one_cache_key(FileResource.Settings.name,
@@ -113,7 +113,7 @@ async def update_resource(resource_id: PydanticObjectId, data: FileResourceUpdat
 async def delete_resource(resource_id: PydanticObjectId) -> None:
     resource = await FileResource.get(resource_id)
     if not resource:
-        raise ResourceNotFound("Resource not found")
+        raise DBDocumentNotFound("Resource not found")
     # invalidate cache
     await FastAPICache.clear(key=get_one_cache_key(FileResource.Settings.name,
                                                    resource_id))
@@ -122,5 +122,5 @@ async def delete_resource(resource_id: PydanticObjectId) -> None:
 async def list_resources_by_kb(knowledge_base_id: str, offset: int = 0, limit: int = 100) -> list[FileResource]:
     kb = await KnowledgeBase.get(knowledge_base_id)
     if not kb:
-        raise ResourceNotFound("Knowledge base not found")
+        raise DBDocumentNotFound("Knowledge base not found")
     return await FileResource.find(FileResource.knowledge_base_id == knowledge_base_id).skip(offset).limit(limit).to_list()

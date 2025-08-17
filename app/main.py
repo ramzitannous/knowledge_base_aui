@@ -12,7 +12,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
 from app.deps import verify_api_key
-from app.exceptions import ResourceConflict, ResourceNotFound
+from app.exceptions import DBDocumentNotFound, DBDocumentConflict
 from app.routes import knowledge_base_router, file_resources_router, vector_search_router, rag_router
 from app.services.cache import init_cache
 from app.services.db import init_db
@@ -21,7 +21,7 @@ from app.services.db import init_db
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
-    await init_cache()
+    init_cache()
     yield
 
 
@@ -34,12 +34,12 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
 
 # Register exception handlers
-@app.exception_handler(ResourceNotFound)
-async def resource_not_found_handler(request: Request, exc: ResourceNotFound):
+@app.exception_handler(DBDocumentNotFound)
+async def resource_not_found_handler(request: Request, exc: DBDocumentNotFound):
     return JSONResponse(status_code=404, content={"error": str(exc)})
 
-@app.exception_handler(ResourceConflict)
-async def resource_conflict_handler(request: Request, exc: ResourceConflict):
+@app.exception_handler(DBDocumentConflict)
+async def resource_conflict_handler(request: Request, exc: DBDocumentConflict):
     return JSONResponse(status_code=409, content={"error": str(exc)})
 
 @app.exception_handler(Exception)
