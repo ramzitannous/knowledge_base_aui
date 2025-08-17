@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, ORJSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -25,7 +25,10 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(lifespan=lifespan, dependencies=[Depends(verify_api_key)])
+app = FastAPI(lifespan=lifespan,
+              dependencies=[Depends(verify_api_key)],
+              title="Knowledge Base API",
+              default_response_class=ORJSONResponse)
 
 # setup rate limiter for 10/minute
 limiter = Limiter(key_func=get_remote_address, default_limits=["10/minute"])

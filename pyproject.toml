@@ -28,4 +28,5 @@ dependencies = [
     "rich>=14.1.0",
     "hayhooks>=0.10.1",
     "fastapi-cache2[redis]>=0.2.2",
+    "orjson>=3.11.2",
 ]
