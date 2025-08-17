@@ -1,310 +1,144 @@
 # Knowledge Base AUI
 
-# Mongodb Collections
-### KnowledgeBase Model (knowledge_bases)
-| Field       | Type              | Description                                    |
-|-------------|-------------------|------------------------------------------------|
-| name        | str               | Name of the knowledge base (**unique**)         |
-| description | str               | Description of the knowledge base               |
-| created_at  | datetime.datetime | Creation timestamp (UTC)                       |
-| updated_at  | Optional[datetime.datetime] | Last update timestamp (UTC)           |
-
-### KnowledgeBaseResource Model (knowledge_base_files)
-- unique togather (knowledge_base_id, filename, version)
-
-| Field             | Type               | Description                                          |
-|-------------------|--------------------|------------------------------------------------------|
-| knowledge_base_id | str                | Reference to KnowledgeBase _id                       |
-| filename          | str                | Name of the file                                     |
-| s3_key            | Optional[str]      | S3 key of the file                                   |
-| uploaded_at       | datetime.datetime  | Upload timestamp (UTC)                               |
-| size              | Optional[int]      | Size of the file in bytes                            |
-| version           | Optional[int]      | Version of the file                                  |
- | status            | StatusEnum        | Resource status: uploading, ingesting, done, error   |
-| error             | Optional[str]      | Error message                                        |
-- This application is a Python-based tool designed to manage and interact with a knowledge base. The project uses a modular structure with a main entry point in `main.py` and dependency management via `pyproject.toml` (managed with [uv](https://github.com/astral-sh/uv)). The app is intended for local use and can be extended for various knowledge management or automation tasks.
-
-## Key Features
-
-- **Python-based CLI or script**: Main logic in `main.py`.
-- **Dependency management**: Uses `pyproject.toml` and [uv](https://github.com/astral-sh/uv) for package requirements.
-- **MongoDB and PostgreSQL (with vector DB support)**: Supports both MongoDB and PostgreSQL (with [pgvector](https://github.com/pgvector/pgvector) extension) for storage and vector search capabilities.
-- **Extensible structure**: Designed for easy addition of new features or modules.
-
 ## Getting Started
 
-1. Install dependencies (requires [uv](https://github.com/astral-sh/uv)):
-   ```sh
-   uv pip install -r requirements.txt
-   ```
-   _or use `uv pip install -r pyproject.toml` if you manage dependencies only via `pyproject.toml`._
 
-2. Copy `.env.example` to `.env` and `.env` as needed, and edit the values for your environment.
+1. Copy `.env.example` to `.env` and `.env` as needed, and edit the values for your environment.
 
-3. Start the stack:
+2. Start the stack:
    ```sh
    docker-compose --env-file .env.docker -f .docker-compose-dev.yaml -p knowledge_base_aui up -d
 
    ```
    _Environment variables will be loaded from `.env` or `.env` automatically._
+---
+   #### python for local development instead of docker
+1. install uv, follow instructions here https://docs.astral.sh/uv/getting-started/installation/#standalone-installer
 
-4. Run the application:
-   ```sh
-   uv run uvicorn app.main:app --reload 
+2. install project dependencies: 
+3. ```sh
+   uv pip install .
    ```
+4. run the app:
+   ```sh
+   uvicorn app.main:app --reload --loop uvloop 
+   ```
+---
+   ### URLs:
+   1. http://localhost:8000/docs for swagger documentation
+   2. http://localhost:9181 for rq-dashboard to monitor running background tasks
 
+---
 ## Environment Variables
 
 The following environment variables must be set (in `.env` for development or `.env.example` as a template):
 
-- `MONGO_INITDB_ROOT_USERNAME`: MongoDB root username
-- `MONGO_INITDB_ROOT_PASSWORD`: MongoDB root password
-- `POSTGRES_USER`: Postgres database user
-- `POSTGRES_PASSWORD`: Postgres database password
-- `POSTGRES_DB`: Postgres database name
+**MongoDB Configuration**
 
-Copy `.env.example` to `.env` or `.env` and fill in your values before starting the stack.
+| Field Name                   | Type    | Default Value   | Description                  |
+|------------------------------|---------|-----------------|------------------------------|
+| `MONGO_INITDB_ROOT_USERNAME` | string  | `admin`         | MongoDB root username        |
+| `MONGO_INITDB_ROOT_PASSWORD` | string  | `admin`         | MongoDB root password        |
+| `MONGODB_HOST`               | string  | `"localhost"`   | MongoDB host address         |
+| `MONGODB_PORT`               | string  | `"27017"`       | MongoDB port number          |
+| `MONGODB_DB`                 | string  | `knowledge_base`| MongoDB database name        |
 
-### Installation
+**PostgreSQL Configuration**
 
-Beanie is included as a dependency in `pyproject.toml`. If you haven't already, install dependencies with:
+| Field Name         | Type   | Default Value   | Description            |
+|--------------------|--------|-----------------|------------------------|
+| `POSTGRES_HOST`    | string | `"localhost"`   | PostgreSQL host address|
+| `POSTGRES_PORT`    | string | `"5432"`        | PostgreSQL port number |
+| `POSTGRES_USER`    | string | `admin`         | PostgreSQL username    |
+| `POSTGRES_PASSWORD`| string | `admin`         | PostgreSQL password    |
+| `POSTGRES_DB`      | string | `knowledge_base`| PostgreSQL database name|
 
-```bash
-pip install .
+**AWS/S3 Configuration**
+
+| Field Name             | Type   | Default Value           | Description                     |
+|------------------------|--------|-------------------------|---------------------------------|
+| `AWS_ACCESS_KEY_ID`    | string | `aws_key`               | AWS access key ID               |
+| `AWS_SECRET_ACCESS_KEY`| string | `aws_secret`            | AWS secret access key           |
+| `AWS_DEFAULT_REGION`   | string | `us-east-1`             | AWS region                      |
+| `AWS_BUCKET_NAME`      | string | `knowledge-base`        | S3 bucket name                  |
+| `AWS_S3_ENDPOINT_URL`  | string | `"http://localhost:9000"`| S3 endpoint URL (for MinIO)     |
+
+**Redis Configuration**
+
+| Field Name  | Type   | Default Value   | Description         |
+|-------------|--------|-----------------|---------------------|
+| `REDIS_HOST`| string | `"localhost"`   | Redis host address  |
+| `REDIS_PORT`| string | `"6379"`        | Redis port number   |
+
+**General Configuration**
+
+| Field Name | Type   | Default Value  | Description            |
+|------------|--------|----------------|------------------------|
+| `APP_ENV`  | string | `"local"`      | Application environment|
+| `API_KEY`  | string | `"my_api_key"` | API authentication key |
+
+**OpenAI Configuration**
+
+| Field Name           | Type   | Default Value           | Description         |
+|----------------------|--------|-------------------------|---------------------|
+| `OPENAI_API_KEY`     | string | `"your_openai_api_key"` | OpenAI API key      |
+| `OPENAI_API_BASE_URL`| string | `"your_openai_api_base_url"` | OpenAI API base URL|
+
+**Other**
+
+| Field Name               | Type    | Default Value | Description                        |
+|--------------------------|---------|---------------|------------------------------------|
+| `TOKENIZERS_PARALLELISM` | boolean | `false`       | Enable/disable tokenizer parallelism|
+
+Copy `.env.example` to `.env` and fill in your values before starting the application.
+
+---
+
+## Project Structure
+
 ```
-
-Or, if you use poetry:
-
-```bash
-poetry install
+knowledge_base_aui/
+├── app/
+│   ├── components/           # Haystack processing components
+│   │   ├── converters/       # Document format converters
+│   │   ├── fetchers/         # Data fetching utilities
+│   │   ├── pipelines/        # Haystack processing pipelines
+│   │   ├── document_store.py # Vector database configuration
+│   │   ├── generator.py      # LLM generator setup
+│   │   └── helpers.py        # Shared utility functions
+│   ├── models/               # Database models
+│   │   └── __init__.py       # KnowledgeBase, FileResource, StatusEnum
+│   ├── routes/               # API endpoints
+│   │   ├── file_resources.py # File CRUD endpoints
+│   │   ├── knowledge_base.py # Knowledge base CRUD endpoints
+│   │   ├── rag.py           # RAG streaming endpoint
+│   │   └── vector_search.py # Vector search endpoint
+│   ├── schemas/              # Pydantic data models
+│   │   ├── file_resources.py # File resource schemas
+│   │   ├── knowledge_base.py # Knowledge base schemas
+│   │   ├── vector_search.py  # Search request/response schemas
+│   │   └── metadata.py       # Metadata filtering schemas
+│   ├── services/             # Business logic layer
+│   │   ├── cache.py         # FastAPI caching utilities
+│   │   ├── clients.py       # External service clients (S3, Redis)
+│   │   ├── db.py            # Database initialization
+│   │   ├── file_resources.py # File resource business logic
+│   │   ├── knowledge_base.py # Knowledge base business logic
+│   │   ├── s3.py            # S3 operations (presigned URLs, file ops)
+│   │   └── tasks.py         # Background job processing
+│   ├── tests/               # Test files
+│   ├── config.py            # Application configuration
+│   ├── deps.py              # FastAPI dependencies
+│   ├── exceptions.py        # Custom exception classes
+│   └── main.py              # FastAPI application entry point
+├── .env                     # Environment variables
+├── .env.example             # Environment template
+├── docker-compose-dev.yaml  # Development Docker setup
+├── Dockerfile               # Container configuration
+├── pyproject.toml           # Python dependencies and project config
+└── Readme.md               # Project documentation
 ```
-
-### Usage Example
-
-Beanie is used to define MongoDB document models and perform async database operations
-See the [Beanie docs](https://roman-right.github.io/beanie/) for more details.
-
-## Knowledge Base CRUD API Folder Structure
-
-The project uses a modular structure compatible with FastAPI for building a scalable knowledge base CRUD API:
-
-```
-app/
-├── main.py                # FastAPI app entry point
-├── models/                # Beanie/MongoDB document models
-│   └── __init__.py
-├── schemas/               # Pydantic schemas for request/response validation
-│   └── __init__.py
-├── routes/                # API route definitions
-│   ├── __init__.py
-│   └── knowledge_base.py  # Knowledge base CRUD endpoints
-├── services/              # Business logic and service layer
-│   └── __init__.py
-└── db/                    # Database connection and utilities
-    └── __init__.py
-```
-
-- Place your Beanie models in `app/models/`
-- Define request/response schemas in `app/schemas/`
-- Add API endpoints in `app/routes/knowledge_base.py`
-- Implement business logic in `app/services/`
-- Put DB connection code in `app/db/`
-
-This structure is scalable and follows FastAPI best practices.
-
-## Knowledge Base API Endpoints
-
-### Create Knowledge Base
-- **POST** `/`
-- **Status Code**: 201 Created
-- **Request Body**: `KnowledgeBaseCreate`
-- **Response**: Created `KnowledgeBase` object
-
-### List Knowledge Bases
-- **GET** `/`
-- **Status Code**: 200 OK
-- **Response**: List of `KnowledgeBase` objects
-
-### Get Knowledge Base by ID
-- **GET** `/{kb_id}`
-- **Status Code**: 200 OK (if found), 404 Not Found (if not found)
-- **Response**: `KnowledgeBase` object
-
-### Update Knowledge Base
-- **PUT** `/{kb_id}`
-- **Status Code**: 200 OK (if updated), 404 Not Found (if not found)
-- **Request Body**: `KnowledgeBaseUpdate`
-- **Response**: Updated `KnowledgeBase` object
-
-### Delete Knowledge Base
-- **DELETE** `/{kb_id}`
-- **Status Code**: 204 No Content (if deleted), 404 Not Found (if not found)
-- **Response**: Empty
-
-#### Example Error Response
-```json
-{
-  "detail": "KnowledgeBase not found"
-}
-```
-
-#### Example Success Response (Create)
-```json
-{
-  "id": "...",
-  "name": "Sample KB",
-  ...
-}
-```
-
-> Status codes now follow RESTful conventions for resource creation, retrieval, update, and deletion.
-
-## API Key Authentication
-
-All API endpoints are protected by API key authentication. Every request must include the correct API key in the `X-API-Key` HTTP header.
-
-### How it works
-- The API key is loaded from the `API_KEY` environment variable (see `.env`, `.env.docker`, `.env.example`).
-- If the provided key is missing or invalid, the API returns a 401 Unauthorized error.
-- This is enforced globally for all endpoints.
-
-### Usage Example
-
-Include the header in your requests:
-
-```http
-X-API-Key: your_secret_key_here
-```
-
-Or with curl:
-```sh
-curl -H "X-API-Key: your_secret_key_here" http://localhost:8000/your-endpoint
-```
-
-### Configuration
-Add your API key to your environment file:
-```
-API_KEY=your_secret_key_here
-```
-
-> **Note:** If `API_KEY` is not set, the server will fail to start or will reject all requests.
-
-## Service Layer Structure
-
-All business logic for knowledge base and resource operations is implemented in a dedicated service layer:
-
-- `app/services/knowledge_base.py`: Handles all logic for KnowledgeBase CRUD and validation.
-- `app/services/knowledge_base_resource.py`: Handles all logic for KnowledgeBaseResource CRUD and validation.
-
-FastAPI routes in `app/routes/knowledge_base.py` delegate to these services, keeping the API layer clean and maintainable. This separation makes the codebase easier to test, extend, and reason about.
-
-## Error Handling
-
-The API uses unified exception handling for resource errors:
-
-- `ResourceNotFound` returns HTTP 404 with `{ "error": "..." }`.
-- `ResourceConflict` returns HTTP 409 with `{ "error": "..." }` (e.g., unique constraint violations).
-
-These are handled globally in `main.py` for consistent error responses across all endpoints.
-
-## Async S3/MinIO Integration
-
-This project supports AWS S3-compatible storage (including [MinIO](https://min.io/)) using `aioboto3` for async access.
-
-### Setup
-1. Install dependencies (already included in `pyproject.toml`):
-   ```sh
-   uv pip install -r pyproject.toml
-   ```
-2. Set the following environment variables as needed:
-   - `AWS_ACCESS_KEY_ID` (default: `minioadmin`)
-   - `AWS_SECRET_ACCESS_KEY` (default: `minioadmin`)
-   - `AWS_S3_ENDPOINT_URL` (default: `http://localhost:9000` for MinIO)
-   - `AWS_REGION` (default: `us-east-1`)
-
-### Usage Example
-In your async Python code, use the provided client factory:
-```python
-from app.services.clients import get_async_s3_client
-
-async def upload_example():
-    async with get_async_s3_client() as s3:
-        await s3.put_object(Bucket="mybucket", Key="file.txt", Body=b"data")
-```
-
-- The client is fully compatible with both AWS S3 and MinIO.
-- See `app/services/clients.py` for implementation details.
-
-## Document Splitting Strategy
-
-We use the `RecursiveDocumentSplitter` component to chunk documents before embedding and storage. This splitter recursively divides documents using a prioritized list of separators (paragraph, newline, space), producing chunks of approximately 500 characters with 50 characters of overlap by default (configurable in `PIPELINE_CONFIG`).
-
-This approach preserves semantic context across chunk boundaries and improves retrieval quality for long documents. The chunking parameters can be tuned for your use case, balancing context size with search granularity.
-
-Example configuration:
-```python
-pdf_splitter = RecursiveDocumentSplitter(
-    chunk_size=app_config.PIPELINE_CONFIG.CHUNK_SIZE,
-    chunk_overlap=app_config.PIPELINE_CONFIG.CHUNK_OVERLAP,
-    separators=app_config.PIPELINE_CONFIG.SEPARATORS
-)
-```
-
-## Embedding Model Choice
-
-We use `sentence-transformers/all-MiniLM-L6-v2` as the default embedding model for semantic search and retrieval. This model offers an excellent balance of speed, accuracy, and model size, making it well-suited for production environments. It is widely adopted in the NLP community, lightweight, and performs well on a variety of English-language datasets. This makes it a strong default for general-purpose document embedding and semantic search tasks.
-
-## Why Haystack Fastembed?
-
-We use Haystack's Fastembed integration for document embedding because it provides high-performance, CPU-optimized text embedding without requiring a GPU. Fastembed leverages efficient models and quantization techniques to deliver fast inference speeds, making it ideal for production environments where GPU resources may be limited or unavailable. This allows for scalable, cost-effective semantic search and retrieval, especially when running on commodity hardware or in cloud deployments with CPU-only nodes [(https://haystack.deepset.ai/integrations/fastembed)].
-
-## Configuration with Pydantic Settings
-
-Application settings are managed using Pydantic's `BaseSettings` in `app/config.py`. This allows configuration via environment variables or a `.env` file, following FastAPI best practices.
-
-Example `AppConfig`:
-
-```python
-from pydantic import BaseSettings
-
-class AppConfig(BaseSettings):
-    DEBUG: bool = True
-    MONGODB_URI: str = "mongodb://localhost:27017"
-    MONGODB_DB: str = "knowledge_base"
-
-    class Config:
-        env_file = ".env"
-```
-
-- Override any setting with environment variables or a `.env` file.
-- Use `AppConfig()` to access settings throughout your codebase.
-
-## Running with uvloop
-
-This project uses [uvloop](https://github.com/MagicStack/uvloop) for improved async performance in Python. `uvloop` is a drop-in replacement for the standard asyncio event loop, providing significant speedups for I/O-bound applications such as FastAPI.
-
-### How uvloop is used
-- The Dockerfile runs the app with the following command:
-  ```sh
-  uvicorn app.main:app --host 0.0.0.0 --port 8000 --loop uvloop --app-dir app
-  ```
-- This tells `uvicorn` to use `uvloop` as the event loop implementation.
-
-### Benefits
-- Faster request handling and lower latency for async APIs.
-- No code changes needed—just the `--loop uvloop` flag.
-
-### Requirements
-- `uvloop` is installed automatically as part of the dependencies (see `pyproject.toml`).
-
-### Local Docker development
-To build and run locally:
-```sh
-docker build -t myfastapi .
-docker run --rm -p 8000:8000 myfastapi
-```
-
-Your FastAPI app will now run with `uvloop` for maximum async performance.
+---
 
 ## Tech Stack
 - uv ([uv](https://github.com/astral-sh/uv))
@@ -325,31 +159,93 @@ Your FastAPI app will now run with `uvloop` for maximum async performance.
 - rq-dashboard ([rq-dashboard](https://github.com/rq/rq-dashboard)) for monitoring queues
 - haystack ([haystack](https://github.com/deepset-ai/haystack)) for rag pipeline & semantic search
 - pydantic ([pydantic](https://github.com/samuelcolvin/pydantic)) for data validation and serialization
-- pypdf ([pypdf](https://github.com/py-pdf/pypdf)) for PDF processing
 - nest_asyncio ([nest_asyncio](https://github.com/andyshinn/nest_asyncio)) for nested event loops
 - fastembed ([fastembed](https://github.com/qdrant/fastembed/)) for text embedding using CPU with fast performance
-- fastembed-haystack ([fastembed-haystack](https://github.com/qdrant/fastembed-haystack/)) for text embedding using CPU with fast performance
+- fastembed-haystack ([fastembed-haystack](https://github.com/qdrant/fastembed-haystack/)) haystack integration for text embedding using CPU with fast performance
 - tiktoken ([tiktoken](https://github.com/openai/tiktoken)) for tokenization
-## Project Structure
+- pgvector-haystack ([https://github.com/pgvector/pgvector)) for vector DB support
+- docling-haystack ([https://github.com/deepset-ai/docling-haystack)) to parse and extract PDF documents
+- docling ([https://github.com/deepset-ai/docling)) to parse and extract PDF documents
+- pytesseract ([https://github.com/tesseract-ocr/tesseract)) for OCR support
+- pillow ([https://pillow.readthedocs.io/en/stable/]) for image processing
+- fastapi-cache2[redis] ([https://github.com/encode/fastapi-cache2]) for caching support for API layer using Redis
+- orjson ([https://github.com/ijl/orjson]) for faster JSON serialization
 
-- `main.py` — Main entry point and application logic.
-- `pyproject.toml` — Project metadata and dependencies.
-- `Readme.md` — Documentation and usage instructions.
-- `.docker-compose-dev.yaml` — Docker Compose config for local dev databases.
-- `.env`, `.env` — Environment variables for local development (used by Docker Compose).
-- `.env.example` — Example environment variable file (template).
+---
 
-### KnowledgeBaseResource Fields
+## API Specification
+### V1 API
+- Prefix for all api endpoints: `/api/v1`
 
-- **knowledge_base_id**: Reference to KnowledgeBase `_id`
-- **filename**: Name of the file
-- **s3_key**: S3 key of the file (optional)
-- **content_type**: Content type (MIME, optional)
-- **size**: Size of the file in bytes (optional)
-- **version**: Version of the file (default: 1)
-- **status**: Resource status (enum)
-  - `active`: The resource is available and in use
-  - `inactive`: The resource is temporarily disabled
-  - `archived`: The resource is archived and not in active use
+### API Rate Limits [Bonus]
+- Maximum number of requests per minute: 10
+- configuration was done using `slowapi`
+- can be adjusted in `config.py` using `API_RATE_LIMITS` in `app_config.py`
 
-> The `status` field defaults to `active` if not specified.
+### Caching [Bonus]
+`GET` one endpoints use Redis caching (via fastapi-cache2). Cache is auto-initialized, invalidated on update or delete
+This will improve read performance.
+
+### API Key Authentication
+All API endpoints are protected by API key authentication. Every request must include the correct API key in the `X-API-Key` HTTP header.
+
+- The API key is loaded from the `API_KEY` environment variable (see `.env`, `.env.docker`, `.env.example`).
+  - If the provided key is missing or invalid, the API returns a 401 Unauthorized error.
+  - This is enforced globally for all endpoints.
+
+> **Note:** If `API_KEY` is not set, the server will fail to start or will reject all requests.
+
+### Error Handling
+
+The API uses unified exception handling for resource errors:
+
+- `DBDocumentNotFound` returns HTTP 404 with `{ "error": "..." }`.
+- `DBDocumentConflict` returns HTTP 409 with `{ "error": "..." }` (e.g., unique constraint violations).
+
+These are handled globally in `main.py` for consistent error responses across all endpoints.
+
+### File Storage
+This project supports AWS S3-compatible storage (including [MinIO](https://min.io/)) using `aioboto3` for async access.
+all file uploads are uploaded to S3 and stored in a bucket named `app_config.AWS_BUCKET_NAME`.
+
+---
+
+## Background Worker
+- rq is used to offload CPU bound operations to a separate background worker
+- The `run_pdf_indexing_task` in `app.tasks` contains background task for processing PDF files and run `pdf_index_pipeline`
+
+---
+
+## MongoDB Document Schema
+
+#### KnowledgeBase Model
+
+| Field Name   | Type                  | Description                                 |
+|--------------|-----------------------|---------------------------------------------|
+| name         | str | Name of the knowledge base (unique)         |
+| description  | str                   | Description of the knowledge base           |
+| created_at   | datetime.datetime     | Creation timestamp                          |
+| updated_at   | Optional[datetime]    | Last updated timestamp                      |
+
+#### FileResource Model
+
+| Field Name        | Type                        | Description                                 |
+|-------------------|-----------------------------|---------------------------------------------|
+| knowledge_base_id | PydanticObjectId            | Reference to KnowledgeBase _id              |
+| filename          | str                         | Name of the file                            |
+| s3_key            | Optional[str]               | S3 key of the file                          |
+| size              | Optional[int]               | Size of the file in bytes                   |
+| version           | Optional[int] (default=1)   | Version of the file                         |
+| status            | StatusEnum                  | Resource status                             |
+| error             | Optional[str]               | Error message                               |
+| job_id            | Optional[str]               | Job ID for async processing                 |
+| created_at        | datetime.datetime           | Creation timestamp                          |
+| updated_at        | Optional[datetime.datetime] | Last updated timestamp                      |
+
+#### Relationships:
+    KnowledgeBase (1) ────< (many) FileResource
+            ^                     |
+            |                     |
+         _id (referenced by) knowledge_base_id
+
+---
