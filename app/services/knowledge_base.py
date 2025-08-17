@@ -1,6 +1,8 @@
 import datetime
 
+from app.services.cache_key_builder import get_one_cache_key
 from beanie import PydanticObjectId
+from fastapi_cache import FastAPICache
 
 from app.exceptions import ResourceConflict, ResourceNotFound
 from app.models import KnowledgeBase
@@ -42,10 +44,16 @@ async def update_knowledge_base(kb_id: PydanticObjectId, data: KnowledgeBaseUpda
         if hasattr(e, "details") and "E11000" in str(e):
             raise ResourceConflict("KnowledgeBase with this name already exists.")
         raise
+    # invalidate cache
+    await FastAPICache.clear(key=get_one_cache_key(KnowledgeBase.Settings.name,
+                                                   kb_id))
     return kb
 
 async def delete_knowledge_base(kb_id: PydanticObjectId) -> None:
     kb = await KnowledgeBase.get(kb_id)
     if not kb:
         raise ResourceNotFound("KnowledgeBase not found")
+    # invalidate cache
+    await FastAPICache.clear(key=get_one_cache_key(KnowledgeBase.Settings.name,
+                                                   kb_id))
     await kb.delete()

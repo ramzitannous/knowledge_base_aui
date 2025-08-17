@@ -8,3 +8,4 @@ dist
 app/tests/files/*
 .python-version
 *.egg-info
+__pycache__

@@ -7,10 +7,10 @@ from beanie import PydanticObjectId
 from beanie.odm.operators.update.general import Set
 from rq import Queue
 
-from app.db import init_db
 from app.models import FileResource, StatusEnum
 from app.schemas.metadata import FileResourceMetadata
 from app.services.clients import redis_client
+from app.services.db import init_db
 
 logger = logging.getLogger(__name__)
 

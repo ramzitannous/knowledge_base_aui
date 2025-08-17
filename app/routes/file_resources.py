@@ -1,9 +1,11 @@
 from typing import List
 
+from app.services.cache import build_get_one_cache_key
 from beanie import PydanticObjectId
 from botocore.client import BaseClient
 from fastapi import APIRouter, status, Depends
 from fastapi.params import Query
+from fastapi_cache.decorator import cache
 
 from app.config import app_config
 from app.deps import s3_dep
@@ -45,6 +47,7 @@ async def list_resources(knowledge_base_id: str, offset: int = 0, limit: int = 1
 
 @router.get("/{file_resource_id}", response_model=FileResource,
             status_code=status.HTTP_200_OK)
+@cache(key_builder=build_get_one_cache_key, namespace=FileResource.Settings.name)
 async def get_resource(file_resource_id: PydanticObjectId):
     return await service.get_resource(file_resource_id)
 

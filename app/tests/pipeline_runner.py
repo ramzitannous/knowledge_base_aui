@@ -1,9 +1,9 @@
+from app.services.db import init_db
 from hayhooks import streaming_generator
 from rich.console import Console
 from rich.markdown import Markdown
 
 from app.components.pipelines.rag import rag_pipeline
-from app.db import init_db
 from app.models import FileResource
 from app.schemas.metadata import FileResourceMetadata
 

@@ -57,6 +57,10 @@ class AppConfig(BaseSettings):
     APP_ENV: AppEnv
     API_KEY: str
     TOKENIZERS_PARALLELISM: str
+    CACHE_PREFIX: str = "fastapi_cache"
+
+    # 1 hour
+    CACHE_TTL: int = 3600
 
     # pipeline
     PIPELINE_CONFIG: PipelineConfig = PipelineConfig()

@@ -11,15 +11,17 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
-from app.db import init_db
 from app.deps import verify_api_key
 from app.exceptions import ResourceConflict, ResourceNotFound
 from app.routes import knowledge_base_router, file_resources_router, vector_search_router, rag_router
+from app.services.cache import init_cache
+from app.services.db import init_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    await init_cache()
     yield
 
 

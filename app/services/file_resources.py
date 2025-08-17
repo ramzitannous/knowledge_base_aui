@@ -2,8 +2,10 @@ import asyncio
 import datetime
 import logging
 
+from app.services.cache_key_builder import get_one_cache_key
 from beanie import PydanticObjectId
 from botocore.client import BaseClient
+from fastapi_cache import FastAPICache
 
 from app.config import app_config
 from app.exceptions import ResourceConflict, ResourceNotFound
@@ -102,6 +104,9 @@ async def update_resource(resource_id: PydanticObjectId, data: FileResourceUpdat
         if hasattr(e, "details") and "E11000" in str(e):
             raise ResourceConflict("Resource with this filename, version, and knowledge_base_id already exists.")
         raise
+    # invalidate cache
+    await FastAPICache.clear(key=get_one_cache_key(FileResource.Settings.name,
+                                                   resource_id))
     return resource
 
 
@@ -109,6 +114,9 @@ async def delete_resource(resource_id: PydanticObjectId) -> None:
     resource = await FileResource.get(resource_id)
     if not resource:
         raise ResourceNotFound("Resource not found")
+    # invalidate cache
+    await FastAPICache.clear(key=get_one_cache_key(FileResource.Settings.name,
+                                                   resource_id))
     await resource.delete()
 
 async def list_resources_by_kb(knowledge_base_id: str, offset: int = 0, limit: int = 100) -> list[FileResource]:

@@ -1,7 +1,9 @@
 from typing import List
 
+from app.services.cache import build_get_one_cache_key
 from beanie import PydanticObjectId
 from fastapi import APIRouter, status, Response, Query
+from fastapi_cache.decorator import cache
 
 from app.models import KnowledgeBase
 from app.schemas import KnowledgeBaseCreate, KnowledgeBaseUpdate, KnowledgeBasePartialUpdate
@@ -22,6 +24,7 @@ async def list_kb_route(offset: int = Query(0, ge=0), limit: int = Query(10, ge=
     return await list_knowledge_bases(offset=offset, limit=limit)
 
 @router.get("/{kb_id}", response_model=KnowledgeBase, status_code=status.HTTP_200_OK)
+@cache(key_builder=build_get_one_cache_key, namespace=KnowledgeBase.Settings.name)
 async def get_kb_route(kb_id: PydanticObjectId):
     kb = await get_knowledge_base(kb_id)
     return kb
