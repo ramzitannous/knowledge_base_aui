@@ -116,10 +116,11 @@ async def delete_resource(resource_id: PydanticObjectId) -> None:
     resource = await FileResource.get(resource_id)
     if not resource:
         raise DBDocumentNotFound("Resource not found")
+
+    await resource.delete()
     # invalidate cache
     await FastAPICache.clear(key=get_one_cache_key(FileResource.Settings.name,
                                                    resource_id))
-    await resource.delete()
 
 async def list_resources_by_kb(knowledge_base_id: str, offset: int = 0, limit: int = 100) -> list[FileResource]:
     kb = await KnowledgeBase.get(knowledge_base_id)

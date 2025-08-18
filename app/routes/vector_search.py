@@ -9,6 +9,15 @@ api_router = APIRouter(prefix="/vector-search", tags=["Vector Search"])
 
 @api_router.post("", response_model=list[VectorSearchResponse], status_code=status.HTTP_200_OK)
 async def vector_search_post(data: SearchInput):
+    """
+    Vector Search API
+    -----------------
+    Perform semantic search over indexed documents using vector embeddings.
+
+    - **Input:** Query string, top_k, optional metadata filters
+    - **Output:** List of documents ranked by semantic similarity
+    - **Use Case:** Retrieve relevant documents for a query using vector similarity (e.g., for RAG or search UX)
+    """
     top_k = data.top_k
     query = data.query
     pipeline_input = build_pipeline_input(top_k, query, data.metadata_filters)

@@ -14,7 +14,15 @@ api_router = APIRouter(prefix="/rag", tags=["Rag Streaming"])
 
 @api_router.post("", status_code=status.HTTP_200_OK)
 def rag_post(data: SearchInput):
-    """return rag with llm response for a query in real time using streaming"""
+    """
+    RAG Streaming API
+    ----------------
+    Retrieve real-time, streaming LLM answers based on retrieved documents (RAG pipeline).
+
+    - **Input:** Query string, top_k, optional metadata filters
+    - **Output:** Streaming LLM response (text chunks)
+    - **Use Case:** Get live, streaming answers from LLM grounded in your knowledge base
+    """
 
     top_k = data.top_k
     query = data.query

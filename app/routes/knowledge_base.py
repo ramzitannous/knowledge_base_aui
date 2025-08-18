@@ -2,7 +2,7 @@ from typing import List
 
 from app.services.cache import build_get_one_cache_key
 from beanie import PydanticObjectId
-from fastapi import APIRouter, status, Response, Query
+from fastapi import APIRouter, status, Response, Query, Body
 from fastapi_cache.decorator import cache
 
 from app.models import KnowledgeBase
@@ -16,11 +16,20 @@ router = APIRouter(prefix="/knowledge-bases", tags=["Knowledge Base"])
 
 @router.post("/", response_model=KnowledgeBase, status_code=status.HTTP_201_CREATED)
 async def create_kb_route(data: KnowledgeBaseCreate):
+    """Create a new Knowledge Base. Name must be unique."""
     kb = await create_knowledge_base(data)
     return kb
 
-@router.get("/", response_model=List[KnowledgeBase], status_code=status.HTTP_200_OK)
-async def list_kb_route(offset: int = Query(0, ge=0), limit: int = Query(10, ge=1, le=100)):
+@router.get(
+    "/",
+    response_model=List[KnowledgeBase],
+    status_code=status.HTTP_200_OK,
+)
+async def list_kb_route(
+    offset: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(10, ge=1, le=100, description="Max items to return (1-100)"),
+):
+    """List all knowledge bases with pagination (offset, limit)."""
     return await list_knowledge_bases(offset=offset, limit=limit)
 
 @router.get("/{kb_id}", response_model=KnowledgeBase, status_code=status.HTTP_200_OK)
