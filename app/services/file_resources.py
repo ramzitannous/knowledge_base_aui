@@ -88,13 +88,15 @@ async def update_resource(resource_id: PydanticObjectId, data: FileResourceUpdat
     # run pdf indexing after upload done or re-ingest
     if data.status in [StatusEnum.UPLOADED, StatusEnum.RE_INGEST]:
         logging.info("Running pdf indexing pipeline")
-        loop = asyncio.get_event_loop()
-        enqueue_task = lambda: q.enqueue(run_pdf_indexing_task, resource_id)
 
         # need to run in separate thread, enqueue_task is blocking call
+        loop = asyncio.get_event_loop()
+        enqueue_task = lambda: q.enqueue(run_pdf_indexing_task, resource_id)
         job = await loop.run_in_executor(None, enqueue_task)
+
         update_data["job_id"] = job.id
         update_data["status"] = StatusEnum.INGESTING
+        update_data["error"] = None
 
     for key, value in update_data.items():
         setattr(resource, key, value)

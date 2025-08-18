@@ -5,26 +5,32 @@ import sys
 import nest_asyncio
 from beanie import PydanticObjectId
 from beanie.odm.operators.update.general import Set
+from fastapi_cache import FastAPICache
 from rq import Queue
 
+from app.config import app_config
 from app.models import FileResource, StatusEnum
 from app.schemas.metadata import FileResourceMetadata
+from app.services.cache import init_cache, get_one_cache_key
 from app.services.clients import redis_client
 from app.services.db import init_db
 
 logger = logging.getLogger(__name__)
 
 # rq to process pdf indexing offloaded from server
-q = Queue(connection=redis_client)
+q = Queue(connection=redis_client, default_timeout=app_config.TASK_TIMEOUT)
 
-async def update_knowledge_base_resource_status(kb_resource_id: PydanticObjectId, status: StatusEnum, error=None):
+async def update_knowledge_base_resource_status(file_resource_id: PydanticObjectId, status: StatusEnum, error=None):
     data_to_update = {
         FileResource.status:status
     }
     if error:
         data_to_update[FileResource.error] = error
-    await (FileResource.find_one(FileResource.id == kb_resource_id)
+    await (FileResource.find_one(FileResource.id == file_resource_id)
            .update(Set(data_to_update)))
+    # always invalidate cache
+    await FastAPICache.clear(key=get_one_cache_key(FileResource.Settings.name,
+                                                   file_resource_id))
 
 async def run_pdf_indexing_async(kb_resource_id: PydanticObjectId):
     # initialize beanie on worker startup, todo move to worker startup event
@@ -32,6 +38,9 @@ async def run_pdf_indexing_async(kb_resource_id: PydanticObjectId):
     from app.components.pipelines.pdf_indexer import pdf_index_pipeline
 
     await init_db()
+    # simple sync function call
+    init_cache()
+
     logger.info("Running pdf indexing pipeline")
     kb_resource = await FileResource.get(kb_resource_id)
     metadata = FileResourceMetadata(

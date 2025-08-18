@@ -59,6 +59,7 @@ class AppConfig(BaseSettings):
     TOKENIZERS_PARALLELISM: str
     CACHE_PREFIX: str = "fastapi_cache"
     API_RATE_LIMIT: str = "10/minute"
+    TASK_TIMEOUT: int = 3600
 
     # 1 hour
     CACHE_TTL: int = 3600

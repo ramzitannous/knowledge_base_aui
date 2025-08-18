@@ -204,7 +204,7 @@ The API uses unified exception handling for resource errors:
 
 These are handled globally in `main.py` for consistent error responses across all endpoints.
 
-### File Storage
+### File Storage [Bonus]
 This project supports AWS S3-compatible storage (including [MinIO](https://min.io/)) using `aioboto3` for async access.
 all file uploads are uploaded to S3 and stored in a bucket named `app_config.AWS_BUCKET_NAME`.
 
@@ -213,6 +213,7 @@ all file uploads are uploaded to S3 and stored in a bucket named `app_config.AWS
 ## Background Worker
 - rq is used to offload CPU bound operations to a separate background worker
 - The `run_pdf_indexing_task` in `app.tasks` contains background task for processing PDF files and run `pdf_index_pipeline`
+- Default Task Timeout is set to 1 hour, defined in `config.py` in `app_config.TASK_TIMEOUT`
 
 ---
 

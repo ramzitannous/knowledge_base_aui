@@ -24,9 +24,10 @@ dependencies = [
     "docling-haystack>=0.1.1",
     "pytesseract>=0.3.13",
     "pillow>=11.3.0",
-    "mlx-vlm>=0.3.2",
     "rich>=14.1.0",
     "hayhooks>=0.10.1",
     "fastapi-cache2[redis]>=0.2.2",
     "orjson>=3.11.2",
+    "opencv-python-headless>=4.11.0.86",
+    "opencv-python>=4.12.0.88",
 ]

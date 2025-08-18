@@ -1,3 +1,7 @@
+import asyncio
+
+import nest_asyncio
+
 from app.services.db import init_db
 from hayhooks import streaming_generator
 from rich.console import Console
@@ -13,7 +17,7 @@ console = Console()
 async def main():
     from app.components.pipelines.pdf_indexer import pdf_index_pipeline
     await init_db()
-    id = "689cf5bd4b7d61f6331816d4"
+    id = "68a23cb43891a6b7746c311b"
     kb_resource = await FileResource.get(id)
     metadata = FileResourceMetadata(
         filename=kb_resource.filename,
@@ -27,11 +31,12 @@ async def main():
             "resources_metadata": [metadata]
         },
         "pdf_converter": {
-            "ocr_enabled": False
+            "ocr_enabled": True
         }
     })
-    pdf_index_pipeline.draw(path="pdf_indexing_pipeline.png")
-
+    for doc in documents["pdf_converter"]["documents"]:
+        console.print(Markdown(doc.content))
+        console.print("-" * 80)
 
 def check_vector_retriever():
     from app.components.pipelines.vector_search import search_pipeline
@@ -92,6 +97,5 @@ def run_rag_pipeline():
         console.print(result.content, end="")
 
 if __name__ == "__main__":
-    run_rag_pipeline()
-    # nest_asyncio.apply()
-    # asyncio.run(run_rag_pipeline())
+    nest_asyncio.apply()
+    asyncio.run(main())

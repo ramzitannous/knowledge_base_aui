@@ -56,6 +56,10 @@ services:
     depends_on:
       - app
     command: "rq worker --with-scheduler --url redis://${REDIS_HOST}:${REDIS_PORT}/0"
+    volumes:
+      - ./app:/workspace/app
+      - ./pyproject.toml:/workspace/pyproject.toml
+      - ./uv.lock:/workspace/uv.lock
 
 
   dashboard:
@@ -83,6 +87,11 @@ services:
       - postgres
       - minio
       - redis
+    volumes:
+      - ./app:/workspace/app
+      - ./pyproject.toml:/workspace/pyproject.toml
+      - ./uv.lock:/workspace/uv.lock
+
 
 
 volumes:

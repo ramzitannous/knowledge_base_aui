@@ -55,7 +55,7 @@ async def get_resource(file_resource_id: PydanticObjectId):
 @router.put("/{file_resource_id}", response_model=FileResource, status_code=status.HTTP_200_OK)
 async def update_resource(file_resource_id: PydanticObjectId, data: FileResourceUpdate):
     """
-    - Ingesting file will start once file status is send as `uploaded`
+    - Ingesting file will start once file status is send as `uploaded` or `re_ingest`
     """
     return await service.update_resource(file_resource_id, data)
 
@@ -63,7 +63,7 @@ async def update_resource(file_resource_id: PydanticObjectId, data: FileResource
 @router.patch("/{file_resource_id}", response_model=FileResource, status_code=status.HTTP_200_OK)
 async def partial_update_resource(file_resource_id: PydanticObjectId, data: FileResourcePartialUpdate):
     """
-       - Ingesting file will start once file status is send as `uploaded`
+    - Ingesting file will start once file status is send as `uploaded` or `re_ingest`
     """
     return await service.update_resource(file_resource_id, data, True)
 
